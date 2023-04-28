@@ -1,24 +1,20 @@
-### Hi there 👋
+<h1 align="center">Hi 👋, I'm Ashish :)</h1>
+<h3 align="center">An aspiring Game Developer.</h3>
 
-<!--
-**brickster241/brickster241** is a ✨ _special_ ✨ repository because its `README.md` (this file) appears on your GitHub profile.
+<p align="left"> <img src="https://komarev.com/ghpvc/?username=brickster241&label=Profile%20views&color=0e75b6&style=flat" alt="brickster241" /> </p>
 
-Here are some ideas to get you started:
-- 🔭 I’m currently working on ...
-- 🌱 I’m currently learning ...
-- 👯 I’m looking to collaborate on ...
-- 🤔 I’m looking for help with ...
-- 💬 Ask me about ...
-- 📫 How to reach me: ...
-- 😄 Pronouns: ...
-- ⚡ Fun fact: ...
--->
-### Github Stats & Languages Used.
-![Ashish's GitHub stats](https://github-readme-stats.vercel.app/api?username=brickster241&show_icons=true&theme=buefy)
-[![Top Langs](https://github-readme-stats.vercel.app/api/top-langs/?username=brickster241&layout=compact&theme=vue)](https://github.com/anuraghazra/github-readme-stats)
+- 🔭 I’m currently working on [Battle Tanks 3D](https://github.com/brickster241/battle-tanks-3d)
 
-### Contribution Graph.
-[![Ashish's Github activity graph](https://github-readme-activity-graph.cyclic.app/graph?username=brickster241&theme=react-dark)](https://github.com/ashutosh00710/github-readme-activity-graph)
+- 🌱 I’m currently learning **Unity & Game Programming Patterns.**
 
-### Here's a snake eating my contribution graph
-![snake gif](https://github.com/brickster241/brickster241/blob/output/github-contribution-grid-snake.gif)
+- 📫 How to reach me **ashv6561@gmail.com**
+
+- ⚡ Life Quote : **It is what it is.**
+
+<h3 align="left">Languages and Tools:</h3>
+<p align="left"> <a href="https://www.w3schools.com/cpp/" target="_blank" rel="noreferrer"> <img src="https://raw.githubusercontent.com/devicons/devicon/master/icons/cplusplus/cplusplus-original.svg" alt="cplusplus" width="40" height="40"/> </a> <a href="https://www.w3schools.com/cs/" target="_blank" rel="noreferrer"> <img src="https://raw.githubusercontent.com/devicons/devicon/master/icons/csharp/csharp-original.svg" alt="csharp" width="40" height="40"/> </a> <a href="https://git-scm.com/" target="_blank" rel="noreferrer"> <img src="https://www.vectorlogo.zone/logos/git-scm/git-scm-icon.svg" alt="git" width="40" height="40"/> </a> <a href="https://unity.com/" target="_blank" rel="noreferrer"> <img src="https://www.vectorlogo.zone/logos/unity3d/unity3d-icon.svg" alt="unity" width="40" height="40"/> </a> <a href="https://unrealengine.com/" target="_blank" rel="noreferrer"> <img src="https://raw.githubusercontent.com/kenangundogan/fontisto/036b7eca71aab1bef8e6a0518f7329f13ed62f6b/icons/svg/brand/unreal-engine.svg" alt="unreal" width="40" height="40"/> </a> </p>
+
+<p align="center">
+<img src="https://github.com/brickster241/brickster241/blob/output/github-contribution-grid-snake.gif"><br>
+<img src="https://github-readme-stats.vercel.app/api?username=brickster241&show_icons=true&theme=buefy"><img src="https://github-readme-stats.vercel.app/api/top-langs/?username=brickster241&layout=compact&theme=vue"><br>
+<img src="https://github-readme-activity-graph.cyclic.app/graph?username=brickster241&theme=react-dark"></p>
