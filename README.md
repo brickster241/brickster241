@@ -13,10 +13,12 @@ Here are some ideas to get you started:
 - 😄 Pronouns: ...
 - ⚡ Fun fact: ...
 -->
+### Github Stats & Languages Used.
+![Ashish's GitHub stats](https://github-readme-stats.vercel.app/api?username=brickster241&show_icons=true&theme=buefy)
+[![Top Langs](https://github-readme-stats.vercel.app/api/top-langs/?username=brickster241&layout=compact&theme=vue)](https://github.com/anuraghazra/github-readme-stats)
 
-[![GitHub Streak](http://github-readme-streak-stats.herokuapp.com?user=brickster241&theme=dark&background=000000)](https://git.io/streak-stats)
-
+### Contribution Graph.
 [![Ashish's Github activity graph](https://github-readme-activity-graph.cyclic.app/graph?username=brickster241&theme=react-dark)](https://github.com/ashutosh00710/github-readme-activity-graph)
 
-[![Top Langs](https://github-readme-stats.vercel.app/api/top-langs/?username=brickster241&layout=compact&theme=vision-friendly-dark)](https://github.com/anuraghazra/github-readme-stats)
-
+### Here's a snake eating my contribution graph
+![snake gif](https://github.com/brickster241/brickster241/blob/output/github-contribution-grid-snake.gif)
