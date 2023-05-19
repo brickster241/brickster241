@@ -16,5 +16,5 @@
 
 <p align="center">
 <img src="https://github.com/brickster241/brickster241/blob/output/github-contribution-grid-snake.gif"><br>
-<img src="https://github-readme-stats.vercel.app/api?username=brickster241&show_icons=true&theme=buefy"><img src="https://github-readme-stats.vercel.app/api/top-langs/?username=brickster241&layout=compact&theme=vue"><br>
+<!-- <img src="https://github-readme-stats.vercel.app/api?username=brickster241&show_icons=true&theme=buefy"><img src="https://github-readme-stats.vercel.app/api/top-langs/?username=brickster241&layout=compact&theme=vue"><br> -->
 <img src="https://github-readme-activity-graph.cyclic.app/graph?username=brickster241&theme=react-dark"></p>
