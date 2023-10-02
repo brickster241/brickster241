@@ -1,5 +1,5 @@
 <h1 align="center">Hi 👋, I'm Ashish :)</h1>
-<h3 align="center">An aspiring Game Developer.</h3>
+<h3 align="center">A Game Developer.</h3>
 
 <p align="left"> <img src="https://komarev.com/ghpvc/?username=brickster241&label=Profile%20views&color=0e75b6&style=flat" alt="brickster241" /> </p>
 
