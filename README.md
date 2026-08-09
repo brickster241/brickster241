@@ -11,7 +11,7 @@ they measure.
 
 <picture>
   <source media="(prefers-color-scheme: light)" srcset="assets/panel-light.svg">
-  <img src="assets/panel-dark.svg" alt="Instrument panel: PulseHTTP 179K req/s at p99 2.2ms; JSON-LP 98/98 differential cases, 0 disagreements; GitEngine byte-for-byte SHA parity with native git; groundschool runs on its own code." width="100%">
+  <img src="assets/panel-dark.svg" alt="Instrument panel: PulseHTTP 179K req/s at p99 2.2ms; GitEngine byte-for-byte SHA parity; JSON-LP 98/98 differential; wc-Go 59/59 vs coreutils; groundschool self-hosting." width="100%">
 </picture>
 
 <sub>Not vanity metrics — each gauge is a number produced by a test or benchmark harness
@@ -26,6 +26,34 @@ because a hand-drawn precision instrument would be a contradiction.</sub>
 <sub>One channel per repo, [redrawn daily by a workflow](.github/workflows/flight-recorder.yml)
 from the commit stats API. Every channel is auto-gained to its own peak — and the peak is
 printed, so the gain is never a lie.</sub>
+
+## The playgrounds
+
+Every repo ships a live, interactive playground on its own Pages — same night, four rooms.
+Click through; each one starts flying itself until you touch it.
+
+<table>
+<tr>
+<td width="50%">
+<a href="https://brickster241.github.io/GitEngine/"><img src="assets/play-gitengine.png" alt="GitEngine review room — a real repository in the browser: explorer, command line, commit graph, object store"></a>
+<sub><b><a href="https://brickster241.github.io/GitEngine/">GitEngine · review room</a></b> — add, commit, branch, merge; every SHA verifiable against native git</sub>
+</td>
+<td width="50%">
+<a href="https://brickster241.github.io/PulseHTTP/"><img src="assets/play-pulsehttp.png" alt="PulseHTTP strip chart — requests flowing through router, auth, token bucket, LRU cache"></a>
+<sub><b><a href="https://brickster241.github.io/PulseHTTP/">PulseHTTP · strip chart</a></b> — starve the token bucket yourself; 401 ≠ 403, live tallies</sub>
+</td>
+</tr>
+<tr>
+<td width="50%">
+<a href="https://brickster241.github.io/JSON-Lexer-Parser-From-Scratch/"><img src="assets/play-jsonlp.png" alt="JSON-LP railroad — the repo's actual Python parser running via Pyodide with a differential verdict"></a>
+<sub><b><a href="https://brickster241.github.io/JSON-Lexer-Parser-From-Scratch/">JSON-LP · railroad</a></b> — the repo's real parser via Pyodide; every keystroke is a differential test</sub>
+</td>
+<td width="50%">
+<a href="https://brickster241.github.io/wc-Go/"><img src="assets/play-wcgo.png" alt="wc-Go counting room — odometer counters and the UTF-8 byte carried across a chunk boundary"></a>
+<sub><b><a href="https://brickster241.github.io/wc-Go/">wc-Go · counting room</a></b> — watch a rune get cut by a 32KB seam and counted correctly anyway</sub>
+</td>
+</tr>
+</table>
 
 ## Selected work
 

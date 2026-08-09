@@ -18,15 +18,18 @@ MONO = "ui-monospace,SFMono-Regular,Menlo,Consolas,'Liberation Mono',monospace"
 SANS = "-apple-system,'Segoe UI',system-ui,Helvetica,Arial,sans-serif"
 
 # One gauge per project: (arc fraction, big number, unit, label, sub1, sub2, color key, start delay)
+# Colors follow each repo's shipped playground accent.
 GAUGES = [
     (0.86, '179K', 'req/s', 'PULSEHTTP · THROUGHPUT',
-     'p99 2.2 ms · raw TCP, zero deps', '39-test wire conformance suite', 'amber', '0.1s'),
-    (1.00, '98/98', '', 'JSON-LP · DIFFERENTIAL',
-     '0 disagreements vs RFC-strict stdlib', '572K tokens/s · bounded depth', 'ok', '0.35s'),
+     'p99 2.2 ms · raw TCP, zero deps', '39-test conformance suite', 'amber', '0.1s'),
     (1.00, 'SHA ≡', 'parity', 'GITENGINE · CORRECTNESS',
-     'byte-for-byte vs native git · diff3', '2× git bulk ingest · 28.5K obj/s fsck', 'hud', '0.6s'),
+     'byte-for-byte vs native git', '2× bulk ingest · 28.5K obj/s fsck', 'teal', '0.3s'),
+    (1.00, '98/98', '', 'JSON-LP · DIFFERENTIAL',
+     'vs RFC-strict stdlib · 0 disagree', '572K tokens/s · bounded depth', 'violet', '0.5s'),
+    (1.00, '59/59', '', 'WC-GO · DIFFERENTIAL',
+     'vs coreutils wc, locale-pinned', 'chars 12.8× · fan-out 3.5×', 'verm', '0.7s'),
     (1.00, 'SELF', 'hosting', 'GROUNDSCHOOL · SKILL',
-     'the skill, run on its own code', 'live demo on GitHub Pages', 'purple', '0.85s'),
+     'the skill, run on its own code', 'live demo on GitHub Pages', 'ok', '0.9s'),
 ]
 
 
@@ -34,10 +37,12 @@ def theme(dark: bool) -> dict:
     if dark:
         return dict(bg='#0b0f14', panel='#11151d', line='#232b38', ink='#e6edf3',
                     dim='#8b98a9', faint='#5b6675', amber='#ffb454', hud='#7dd3fc',
-                    ok='#4ade80', purple='#c4b5fd', grid='#151b26')
+                    ok='#4ade80', purple='#c4b5fd', teal='#4fc6d6', violet='#c297ff',
+                    verm='#ff5c3d', grid='#151b26')
     return dict(bg='#f7f8fa', panel='#ffffff', line='#d7dde6', ink='#1a2330',
                 dim='#4a5668', faint='#8a93a3', amber='#c77d1f', hud='#0f7fa8',
-                ok='#1a8f4e', purple='#7c62c9', grid='#eceff4')
+                ok='#1a8f4e', purple='#7c62c9', teal='#0e7a8a', violet='#7c62c9',
+                verm='#c93a20', grid='#eceff4')
 
 
 def grid(w, h, t, step=28):
@@ -104,10 +109,9 @@ def banner(dark: bool) -> str:
     return ''.join(s)
 
 
-def gauge(x, y, t, frac, big, unit, label, sub1, sub2, color, delay):
+def gauge(x, y, t, frac, big, unit, label, sub1, sub2, color, delay, W=276):
     """One instrument tile; the arc and needle animate from zero to the value."""
-    W = 276
-    cx, cy, r = x + W / 2, y + 128, 74
+    cx, cy, r = x + W / 2, y + 120, 62
     a0, a1 = -120, -120 + 240 * frac  # 240° gauge span
 
     def pt(a, rad):
@@ -122,7 +126,7 @@ def gauge(x, y, t, frac, big, unit, label, sub1, sub2, color, delay):
 
     g = []
     g.append(f'<rect x="{x}" y="{y}" width="{W}" height="250" rx="12" fill="{t["panel"]}" stroke="{t["line"]}" stroke-width="1.5"/>')
-    g.append(f'<text x="{x + 18}" y="{y + 30}" font-size="11" letter-spacing="2.5" fill="{t["faint"]}">{label}</text>')
+    g.append(f'<text x="{x + 14}" y="{y + 28}" font-size="10" letter-spacing="1.8" fill="{t["faint"]}">{label}</text>')
     g.append(f'<path d="{full}" fill="none" stroke="{t["line"]}" stroke-width="7" stroke-linecap="round"/>')
     for i in range(0, 9):
         a = -120 + i * 30
@@ -134,10 +138,10 @@ def gauge(x, y, t, frac, big, unit, label, sub1, sub2, color, delay):
     g.append(f'<g><line x1="{cx}" y1="{cy}" x2="{cx}" y2="{cy - r + 24}" stroke="{color}" stroke-width="2.5" stroke-linecap="round" transform="rotate({a0} {cx} {cy})">'
              f'<animateTransform attributeName="transform" type="rotate" from="{a0} {cx} {cy}" to="{a1} {cx} {cy}" dur="1.4s" begin="{delay}" fill="freeze" calcMode="spline" keySplines="0.25 0.1 0.25 1"/></line>'
              f'<circle cx="{cx}" cy="{cy}" r="5" fill="{color}"/></g>')
-    g.append(f'<text x="{cx}" y="{y + 188}" text-anchor="middle" font-family="{SANS}" font-size="34" font-weight="800" fill="{t["ink"]}">{big}'
-             f'<tspan font-size="14" font-weight="600" fill="{t["dim"]}"> {unit}</tspan></text>')
-    g.append(f'<text x="{cx}" y="{y + 212}" text-anchor="middle" font-size="11" fill="{t["dim"]}">{sub1}</text>')
-    g.append(f'<text x="{cx}" y="{y + 230}" text-anchor="middle" font-size="11" fill="{t["faint"]}">{sub2}</text>')
+    g.append(f'<text x="{cx}" y="{y + 178}" text-anchor="middle" font-family="{SANS}" font-size="30" font-weight="800" fill="{t["ink"]}">{big}'
+             f'<tspan font-size="13" font-weight="600" fill="{t["dim"]}"> {unit}</tspan></text>')
+    g.append(f'<text x="{cx}" y="{y + 204}" text-anchor="middle" font-size="10" fill="{t["dim"]}">{sub1}</text>')
+    g.append(f'<text x="{cx}" y="{y + 222}" text-anchor="middle" font-size="10" fill="{t["faint"]}">{sub2}</text>')
     return ''.join(g)
 
 
@@ -150,8 +154,9 @@ def panel(dark: bool) -> str:
     s.append(f'<text x="24" y="40" font-size="13" letter-spacing="3" fill="{t["dim"]}">INSTRUMENT PANEL</text>')
     s.append(f'<text x="{W - 24}" y="40" text-anchor="end" font-size="11" letter-spacing="2" fill="{t["faint"]}">EVERY NUMBER MEASURED BY A HARNESS IN ITS OWN REPO</text>')
     s.append(f'<line x1="24" y1="52" x2="{W - 24}" y2="52" stroke="{t["line"]}" stroke-width="1.5"/>')
+    TW = 222
     for i, (frac, big, unit, label, sub1, sub2, color, delay) in enumerate(GAUGES):
-        s.append(gauge(24 + i * 292, 66, t, frac, big, unit, label, sub1, sub2, t[color], delay))
+        s.append(gauge(24 + i * (TW + 11), 66, t, frac, big, unit, label, sub1, sub2, t[color], delay, W=TW))
     s.append('</svg>')
     return ''.join(s)
 
