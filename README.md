@@ -35,7 +35,7 @@ printed, so the gain is never a lie.</sub>
 | **[PulseHTTP](https://github.com/brickster241/PulseHTTP)** | Production-shaped HTTP/1.1 stack on raw TCP in Go, zero dependencies — router, auth, rate limiting, LRU+ETag cache, TLS, keep-alive proxy | 179K req/s @ p99 2.2 ms by its own harness; 39-test conformance suite — **[fly the pipeline yourself](https://brickster241.github.io/PulseHTTP/)** |
 | **[JSON-Lexer-Parser](https://github.com/brickster241/JSON-Lexer-Parser-From-Scratch)** | JSON lexer + recursive-descent parser in pure Python, typed errors, bounded depth | 98-case differential vs RFC-strict stdlib: 0 disagreements; 572K tokens/s — **[run it in your browser](https://brickster241.github.io/JSON-Lexer-Parser-From-Scratch/)** |
 | **[groundschool-skill](https://github.com/brickster241/groundschool-skill)** | A Claude Code skill that reads a repository and writes you a course about it — local-first dashboard, verified code anchors, append-only updates | Self-hosting: the **[live demo](https://brickster241.github.io/groundschool-skill/)** is the skill run on its own repo |
-| **[wc-Go](https://github.com/brickster241/wc-Go)** | Concurrent, streaming `wc` in Go — 32KB chunks, goroutine-per-file | Correct UTF-8 rune decoding across chunk boundaries; full POSIX flag compatibility |
+| **[wc-Go](https://github.com/brickster241/wc-Go)** | Concurrent, streaming `wc` in Go — 32KB chunks, goroutine-per-file | 59/59 differential vs coreutils; lines 3.9×, chars up to 12.8×, 100-file fan-out 3.5× — **[watch the boundary carry](https://brickster241.github.io/wc-Go/)** |
 
 ## How I decide what's true
 
