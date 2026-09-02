@@ -35,11 +35,11 @@ Click through; each one starts flying itself until you touch it.
 <table>
 <tr>
 <td width="50%">
-<a href="https://brickster241.github.io/GitEngine/"><img src="assets/play-gitengine.png" alt="GitEngine review room — a real repository in the browser: explorer, command line, commit graph, object store"></a>
+<a href="https://brickster241.github.io/GitEngine/"><img src="assets/play-gitengine.png" alt="GitEngine — a repository from first principles: explorer, commit graph with a merge landed, and the object store glowing as fresh objects arrive"></a>
 <sub><b><a href="https://brickster241.github.io/GitEngine/">GitEngine · review room</a></b> — add, commit, branch, merge; every SHA verifiable against native git</sub>
 </td>
 <td width="50%">
-<a href="https://brickster241.github.io/PulseHTTP/"><img src="assets/play-pulsehttp.png" alt="PulseHTTP strip chart — requests flowing through router, auth, token bucket, LRU cache"></a>
+<a href="https://brickster241.github.io/PulseHTTP/"><img src="assets/play-pulsehttp.png" alt="PulseHTTP — the request path live: comet-trail requests, a 429 storm stacking at the token bucket, and a completion-pulse EKG beating one beat per response"></a>
 <sub><b><a href="https://brickster241.github.io/PulseHTTP/">PulseHTTP · strip chart</a></b> — starve the token bucket yourself; 401 ≠ 403, live tallies</sub>
 </td>
 </tr>
