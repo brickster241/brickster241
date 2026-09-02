@@ -1,0 +1,459 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PulseHTTP, the request path as a transit line</title>
+<meta name="description" content="PulseHTTP's HTTP/1.1 request path drawn as a midnight metro board. Every train is a request through the real route table: router, bearer auth, token bucket, LRU+ETag cache, origin. Measured at 178,996 requests per second.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='12' fill='%23f1f3ea' stroke='%233a86ff' stroke-width='4'/%3E%3Crect x='4' y='13' width='24' height='6' fill='%233a86ff'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Overpass:wght@400;600;800&family=Overpass+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --enamel: #0b1d3a; --enamel2: #0e2448; --steel: #33415c; --steel2: #223150;
+    --cream: #f1f3ea; --dim: #b9c1cf; --faint: #7d889c;
+    --cobalt: #3a86ff; --scarlet: #e63946; --amber: #ffb703; --green: #2dc653; --sky: #8ecae6;
+    --sans: 'Overpass', 'Helvetica Neue', Arial, sans-serif;
+    --mono: 'Overpass Mono', ui-monospace, Menlo, monospace;
+  }
+  * { box-sizing: border-box; margin: 0; }
+  html { color-scheme: dark; background: var(--enamel); scroll-behavior: smooth; }
+  body { background: var(--enamel); color: var(--cream); font-family: var(--sans); font-size: 16px; line-height: 1.55; -webkit-font-smoothing: antialiased; }
+  ::selection { background: var(--cobalt); color: var(--cream); }
+  :focus-visible { outline: 2px solid var(--amber); outline-offset: 3px; }
+  a { color: var(--sky); text-decoration: none; border-bottom: 1px solid rgba(142,202,230,.4); }
+  a:hover { border-color: var(--sky); }
+  * { scrollbar-color: var(--steel) var(--enamel2); scrollbar-width: thin; }
+
+  header { display: grid; grid-template-columns: 1fr auto; gap: 24px; align-items: end; padding: 26px clamp(18px, 4vw, 48px) 18px; border-bottom: 2px solid var(--steel); }
+  .name { display: flex; align-items: center; gap: 14px; }
+  .roundel { width: 40px; height: 40px; border-radius: 50%; background: var(--cream); border: 6px solid var(--cobalt); position: relative; flex: none; }
+  .roundel::after { content: ''; position: absolute; left: -12px; right: -12px; top: 50%; height: 8px; transform: translateY(-50%); background: var(--cobalt); }
+  h1 { font-size: clamp(26px, 3.4vw, 36px); font-weight: 800; letter-spacing: -.01em; line-height: 1; }
+  .sub { color: var(--dim); margin-top: 6px; font-size: 15px; max-width: 70ch; }
+  .service { min-width: 300px; border: 2px solid var(--steel); border-radius: 8px; overflow: hidden; }
+  .service .t { background: var(--steel2); color: var(--dim); font-size: 12.5px; font-weight: 600; padding: 6px 12px; letter-spacing: .02em; }
+  .service .s { display: flex; align-items: center; gap: 10px; padding: 10px 12px; font-weight: 600; font-size: 14px; }
+  .service .lamp { width: 12px; height: 12px; border-radius: 50%; background: var(--green); flex: none; }
+  .service.warn .lamp { background: var(--amber); }
+  .service.warn .s { color: var(--amber); }
+
+  .board { padding: 8px clamp(10px, 2vw, 24px) 0; overflow-x: auto; }
+  .frame { position: relative; width: 100%; min-width: 960px; aspect-ratio: 1200 / 560; max-height: 78dvh; margin: 0 auto; }
+  .frame svg, .frame canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+  .frame canvas { pointer-events: none; }
+  svg text { font-family: var(--sans); font-size: 13px; font-weight: 600; fill: var(--cream); }
+  svg text.sm { font-size: 11.5px; font-weight: 400; fill: var(--dim); }
+  svg text.mono { font-family: var(--mono); font-weight: 600; }
+  .line { fill: none; stroke-width: 8; stroke-linecap: round; stroke-linejoin: round; }
+  .line.req { stroke: var(--cobalt); }
+  .line.ret { stroke: var(--scarlet); }
+  .line.loop { stroke: var(--green); stroke-width: 6; }
+  .line.stub { stroke: var(--faint); stroke-width: 4; stroke-dasharray: 2 8; }
+  .stn { fill: var(--cream); stroke: var(--cobalt); stroke-width: 4; }
+  .stn.inter { stroke-width: 5; }
+  .stn.noentry { fill: var(--scarlet); stroke: var(--cream); }
+  .stn.depot { fill: var(--enamel2); stroke: var(--cream); stroke-width: 3; }
+  .blockbox { fill: rgba(255,183,3,.08); stroke: var(--amber); stroke-width: 2; stroke-dasharray: 6 5; }
+  .lampoff { fill: var(--enamel2); stroke: var(--steel); stroke-width: 2; }
+  .lampon { fill: var(--green); stroke: var(--green); stroke-width: 2; }
+  .lampred { fill: var(--scarlet); stroke: var(--scarlet); stroke-width: 2; }
+  .lever { cursor: ns-resize; touch-action: none; }
+  .lever .slot { fill: var(--enamel2); stroke: var(--steel); stroke-width: 2; }
+  .lever .handle { stroke-width: 6; stroke-linecap: round; }
+  .lever .knob { fill: var(--cream); stroke: var(--enamel); stroke-width: 2; }
+  .lever:hover .knob, .lever:focus-visible .knob { fill: var(--amber); }
+  .lever .plate { fill: var(--steel2); stroke: var(--steel); stroke-width: 1.5; }
+
+  .deck { display: grid; grid-template-columns: auto 1fr; border-top: 2px solid var(--steel); border-bottom: 2px solid var(--steel); }
+  .bells { display: flex; gap: 20px; padding: 14px clamp(18px, 4vw, 48px); border-right: 2px solid var(--steel); align-items: center; }
+  .bells button { background: var(--enamel2); border: 2px solid var(--steel); color: var(--cream); border-radius: 999px; padding: 10px 18px 8px; font: 600 14px var(--sans); cursor: pointer; display: flex; align-items: center; gap: 10px; }
+  .bells button i { width: 12px; height: 12px; border-radius: 50%; background: var(--faint); display: inline-block; }
+  .bells button:hover { border-color: var(--cream); }
+  .bells button:active { transform: translateY(1px); }
+  .bells button.on { border-color: var(--amber); color: var(--amber); }
+  .bells button.on i { background: var(--amber); }
+  .dep { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); }
+  .dep div { padding: 12px 16px 10px; border-right: 2px solid var(--steel); }
+  .dep div:last-child { border-right: 0; }
+  .dep .k { font-size: 12.5px; color: var(--dim); font-weight: 600; white-space: nowrap; }
+  .dep .v { font: 600 24px var(--mono); color: var(--amber); font-variant-numeric: tabular-nums; margin-top: 2px; }
+  .dep .v.quiet { color: var(--cream); }
+
+  main { max-width: 1120px; margin: 0 auto; padding: 40px clamp(18px, 4vw, 48px) 80px; display: grid; grid-template-columns: minmax(0, 1fr) 320px; gap: 48px; }
+  section { margin-bottom: 44px; }
+  h2 { font-size: 22px; font-weight: 800; margin-bottom: 12px; display: flex; align-items: center; gap: 12px; }
+  h2::before { content: ''; width: 16px; height: 16px; border-radius: 50%; border: 4px solid var(--cobalt); background: var(--cream); flex: none; }
+  p { color: var(--dim); max-width: 68ch; margin-bottom: 12px; }
+  p b, li b { color: var(--cream); font-weight: 600; }
+  ol, ul { color: var(--dim); padding-left: 22px; max-width: 68ch; }
+  li { margin-bottom: 10px; }
+  li::marker { color: var(--cobalt); font-weight: 800; }
+  code { font-family: var(--mono); font-size: .92em; color: var(--cream); background: var(--enamel2); padding: 1px 6px; border-radius: 4px; }
+  table { border-collapse: collapse; width: 100%; max-width: 640px; font-size: 15px; margin: 8px 0 16px; }
+  th, td { text-align: left; padding: 9px 12px; border-bottom: 1px solid var(--steel); }
+  th { color: var(--dim); font-weight: 600; font-size: 13px; }
+  td.n { font-family: var(--mono); color: var(--amber); font-weight: 600; white-space: nowrap; }
+  aside .rail { position: sticky; top: 24px; border: 2px solid var(--steel); border-radius: 10px; overflow: hidden; }
+  aside .rail .t { background: var(--steel2); padding: 8px 14px; font-size: 13px; font-weight: 600; color: var(--dim); }
+  aside .rail ul { list-style: none; padding: 8px 0; }
+  aside .rail li { margin: 0; padding: 7px 14px; display: flex; gap: 12px; align-items: baseline; }
+  aside .rail li .c { width: 12px; height: 12px; border-radius: 50%; flex: none; align-self: center; }
+  aside .rail li span:last-child { color: var(--dim); font-size: 14px; }
+  aside .rail li b { color: var(--cream); font-family: var(--mono); font-size: 13px; }
+  footer { border-top: 2px solid var(--steel); padding: 18px clamp(18px, 4vw, 48px); color: var(--faint); font-size: 13.5px; display: flex; flex-wrap: wrap; gap: 8px 24px; }
+
+  @media (max-width: 900px) {
+    header { grid-template-columns: 1fr; align-items: start; }
+    .service { min-width: 0; }
+    .deck { grid-template-columns: 1fr; }
+    .bells { border-right: 0; border-bottom: 2px solid var(--steel); }
+    .dep { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .dep div:nth-child(3) { border-right: 0; }
+    .dep div:nth-child(n+4) { border-top: 2px solid var(--steel); }
+    main { grid-template-columns: 1fr; gap: 24px; }
+    aside .rail { position: static; }
+  }
+  @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <div class="name"><span class="roundel" aria-hidden="true"></span><h1>PulseHTTP</h1></div>
+    <div class="sub">The request path of an HTTP/1.1 server, drawn as a transit line. Every train is a request through the real route table.</div>
+  </div>
+  <div class="service" id="service" role="status" aria-live="polite">
+    <div class="t">Service status</div>
+    <div class="s"><span class="lamp"></span><span id="serviceMsg">Good service on all lines</span></div>
+  </div>
+</header>
+
+<div class="board">
+  <div class="frame" id="frame">
+    <svg id="board" viewBox="0 0 1200 560" preserveAspectRatio="xMidYMid meet" aria-label="Transit-line diagram of the PulseHTTP request path"></svg>
+    <canvas id="trains"></canvas>
+  </div>
+</div>
+
+<div class="deck">
+  <div class="bells">
+    <button id="burst" type="button"><i></i>Surge: 16 trains</button>
+    <button id="pause" type="button" aria-pressed="false"><i></i>Hold all signals</button>
+  </div>
+  <div class="dep" id="tallies"></div>
+</div>
+
+<main>
+  <div>
+    <section id="what">
+      <h2>What you are looking at</h2>
+      <p><b>PulseHTTP</b> is an HTTP/1.1 server and reverse-proxy load balancer written in Go on raw TCP, with no dependencies. This board is a faithful anatomy of one path through it. A train leaves the source, is routed, shows a bearer token at the barrier, waits for a token at the signal block, checks the cache loop, and only then reaches the origin handler. The response comes back along the scarlet line.</p>
+      <p>The route table is the server's own. Four paths, two of them protected:</p>
+      <table>
+        <thead><tr><th>Path</th><th>Who may pass</th><th>Otherwise</th></tr></thead>
+        <tbody>
+          <tr><td><code>/api/users/42</code></td><td>anyone</td><td></td></tr>
+          <tr><td><code>/api/echo</code></td><td>anyone</td><td></td></tr>
+          <tr><td><code>/api/private/profile</code></td><td>any bearer token</td><td class="n">401</td></tr>
+          <tr><td><code>/admin/metrics</code></td><td>the admin role</td><td class="n">401 or 403</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section id="stations">
+      <h2>Station by station</h2>
+      <ol>
+        <li><b>Source.</b> Trains depart at the rate on the first lever. A surge sends sixteen at once, and every eleven seconds a burst of ten arrives on its own, so the signal block is seen holding traffic without anyone touching a thing.</li>
+        <li><b>Router.</b> An interchange with four platforms, one per path in the table above. The path decides which rules apply downstream.</li>
+        <li><b>Auth barrier.</b> The server separates two refusals that most stacks blur. No token on a protected path is <b>401</b>: authenticate first. A valid token without the right role is <b>403</b>: you are known, and still refused. Both leave the line at the red no-entry stop.</li>
+        <li><b>Limiter.</b> A token bucket, shown as a signal block. The lamps are tokens; each train takes one; the bucket refills at the fourth lever's rate up to the capacity on the fifth. When the lamps are out, the train is refused with <b>429</b> and a <b>Retry-After</b> header, and the service board reports severe delays.</li>
+        <li><b>Cache loop.</b> An LRU cache keyed by URL, with ETags. A repeat URL that is already cached short-turns around the green loop: <b>200</b> from cache, or <b>304 Not Modified</b> when the client already holds the ETag and only needs to be told so.</li>
+        <li><b>Origin.</b> The handler. Trains wait in the depot while it works, then the response is cached, the least recently used entry is evicted if the cache is full, and the train returns on the scarlet line.</li>
+      </ol>
+    </section>
+
+    <section id="try">
+      <h2>Try this</h2>
+      <ul>
+        <li>Pull <b>Rate</b> above <b>Refill</b> and watch the lamps go out. The 429 count climbs, the siding fills, and the service board turns amber. Pull it back down and the block clears at exactly the refill rate.</li>
+        <li>Push <b>Repeat URLs</b> to zero. Nothing short-turns; every train goes all the way to the origin and the cache evicts constantly.</li>
+        <li>Set <b>Capacity</b> to one. A bucket that small cannot absorb the eleven-second burst at all, which is the whole reason capacity and refill are separate levers.</li>
+      </ul>
+    </section>
+
+    <section id="measured">
+      <h2>Measured, not simulated</h2>
+      <p>The board above is an animation of the real rules. The numbers below are not: they come from the repository's own load harness, <code>pulsebench</code>, run against the real server on one machine, and they are reproduced in the repository's README with the exact commands.</p>
+      <table>
+        <tbody>
+          <tr><td>Throughput on a cached route</td><td class="n">178,996 req/s</td><td>p99 2.2 ms, 200,000 requests, 0 errors</td></tr>
+          <tr><td>Cache lift on a CPU-bound route</td><td class="n">19.5 times</td><td>8.2K to 160K req/s with LRU+ETag</td></tr>
+          <tr><td>Reverse-proxy balancer</td><td class="n">78,341 req/s</td><td>2.7 times over one connection per request</td></tr>
+          <tr><td>Rate limiter blast test</td><td class="n">202 / 1,798</td><td>allowed / refused with 429 and Retry-After</td></tr>
+          <tr><td>Conformance suite</td><td class="n">39 tests</td><td>raw TCP, one status code per client failure</td></tr>
+        </tbody>
+      </table>
+      <p>To check any of them: clone the repository, run <code>go test ./...</code>, then run the harness the README describes. Your numbers will differ with your hardware; the ratios should not.</p>
+    </section>
+  </div>
+
+  <aside>
+    <div class="rail">
+      <div class="t">Reading the board</div>
+      <ul>
+        <li><span class="c" style="background:var(--cobalt)"></span><span>Request line, outbound</span></li>
+        <li><span class="c" style="background:var(--scarlet)"></span><span>Response line, returning</span></li>
+        <li><span class="c" style="background:var(--green)"></span><span>Cache loop, a short turn</span></li>
+        <li><span class="c" style="background:var(--cream)"></span><span>A train still in flight</span></li>
+        <li><span class="c" style="background:var(--amber)"></span><span>Held at the block, 429</span></li>
+        <li><span class="c" style="background:var(--scarlet);border:2px solid var(--cream)"></span><span>No entry, 401 or 403</span></li>
+        <li><b>Levers</b><span>drag, or use arrow keys</span></li>
+        <li><b>Source</b><span><a href="https://github.com/brickster241/PulseHTTP" target="_blank" rel="noreferrer">github.com/brickster241/PulseHTTP</a></span></li>
+      </ul>
+    </div>
+  </aside>
+</main>
+
+<footer>
+  <span>PulseHTTP by Ashish Verma.</span>
+  <span>The stack is measured, not claimed: 178,996 req/s at p99 2.2 ms by its own harness.</span>
+</footer>
+
+<script type="module">
+const $ = (id) => document.getElementById(id)
+const NS = 'http://www.w3.org/2000/svg'
+const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches
+const C = { cream: '#f1f3ea', dim: '#b9c1cf', cobalt: '#3a86ff', scarlet: '#e63946', amber: '#ffb703', green: '#2dc653', sky: '#8ecae6' }
+
+const PATHS = [
+  { p: '/api/users/42', need: null },
+  { p: '/api/echo', need: null },
+  { p: '/api/private/profile', need: 'user' },
+  { p: '/admin/metrics', need: 'admin' },
+]
+const cfg = { rate: 3, auth: 0.6, repeat: 0.7, cap: 8, refill: 2, slots: 4 }
+let tokens = cfg.cap, paused = false, starved = 0, starveAt = -1e9
+const tallies = { '200 origin': 0, '200 cache': 0, '304': 0, '401': 0, '403': 0, '429': 0 }
+const cache = [], reqs = []
+
+const Y_REQ = 262, Y_RET = 118, Y_NO = 352
+const X = { source: 90, router: 300, auth: 490, bucket: 690, cache: 900, origin: 1110 }
+const stageX = [X.source, X.router, X.auth, X.bucket, X.cache, X.origin]
+const ST = ['source', 'router', 'auth', 'bucket', 'cache', 'origin']
+
+let urlSeq = 100
+function spawn() {
+  const authed = Math.random() < cfg.auth
+  const role = authed ? (Math.random() < 0.8 ? 'user' : 'admin') : null
+  const route = PATHS[Math.floor(Math.random() * PATHS.length)]
+  const hot = Math.random() < cfg.repeat
+  const url = hot ? route.p : route.p + '?v=' + urlSeq++
+  const hasEtag = hot && Math.random() < 0.5
+  reqs.push({ url, need: route.need, role, hasEtag, stage: 0, x: X.source, y: Y_REQ, phase: 'fwd', status: null, dropT: 0, waitUntil: 0, dwell: 0, loopT: 0 })
+}
+function decide(r, stageId) {
+  if (stageId === 'auth') {
+    if (r.need && !r.role) return '401'
+    if (r.need === 'admin' && r.role !== 'admin') return '403'
+    return null
+  }
+  if (stageId === 'bucket') { if (tokens >= 1) { tokens -= 1; return null } starved++; starveAt = performance.now(); return '429' }
+  if (stageId === 'cache') {
+    const i = cache.findIndex((c) => c.url === r.url)
+    if (i >= 0) { const e = cache.splice(i, 1)[0]; cache.unshift(e); renderCache(); return r.hasEtag ? '304' : '200 cache' }
+    return null
+  }
+  if (stageId === 'origin') { r.waitUntil = performance.now() + 260; return 'origin-work' }
+  return null
+}
+function completeOrigin(r) {
+  if (!cache.some((c) => c.url === r.url)) {
+    cache.unshift({ url: r.url, etag: 'W/"' + Math.random().toString(16).slice(2, 8) + '"' })
+    if (cache.length > cfg.slots) cache.pop()
+    renderCache()
+  }
+  return '200 origin'
+}
+
+const svg = $('board')
+function el(name, attrs = {}, parent = svg) { const n = document.createElementNS(NS, name); for (const [k, v] of Object.entries(attrs)) n.setAttribute(k, v); parent.appendChild(n); return n }
+function text(x, y, s, cls = '', anchor = 'middle', parent = svg) { const t = el('text', { x, y, 'text-anchor': anchor, class: cls }, parent); t.textContent = s; return t }
+const parts = {}
+function drawBoard() {
+  el('path', { class: 'line req', d: `M${X.source} ${Y_REQ} H${X.origin - 40}` })
+  el('path', { class: 'line ret', d: `M${X.origin} ${Y_REQ - 30} V${Y_RET + 30} Q${X.origin} ${Y_RET} ${X.origin - 30} ${Y_RET} H${X.source + 30} Q${X.source} ${Y_RET} ${X.source} ${Y_RET + 30} V${Y_REQ - 30}` })
+  text(X.source + 44, Y_RET - 18, 'Response line', 'sm', 'start')
+  text(X.source + 44, Y_REQ + 30, 'Request line', 'sm', 'start')
+  el('path', { class: 'line loop', d: `M${X.cache} ${Y_REQ} C ${X.cache + 90} ${Y_REQ - 10}, ${X.cache + 90} ${Y_RET + 10}, ${X.cache} ${Y_RET}` })
+  text(X.cache + 100, (Y_REQ + Y_RET) / 2 + 4, 'Cache loop', 'sm', 'start')
+  const stn = (x, y, label, sub, opts = {}) => {
+    el('circle', { class: 'stn' + (opts.cls ? ' ' + opts.cls : ''), cx: x, cy: y, r: opts.r ?? 13 })
+    if (opts.inter) el('circle', { cx: x, cy: y, r: 5, fill: '#0b1d3a' })
+    text(x, y + (opts.below ? 36 : -24), label)
+    if (sub) text(x, y + (opts.below ? 52 : -40), sub, 'sm')
+  }
+  stn(X.source, Y_REQ, 'Source', 'clients depart here', { r: 16 })
+  stn(X.router, Y_REQ, 'Router', 'four platforms', { inter: true, cls: 'inter', r: 15 })
+  PATHS.forEach((p, i) => text(X.router - 62, Y_REQ + 34 + i * 14, p.p, 'sm', 'start'))
+  stn(X.auth, Y_REQ, 'Auth barrier', 'bearer token')
+  el('path', { class: 'line stub', d: `M${X.auth} ${Y_REQ + 13} V${Y_NO - 14}`, style: 'stroke:#e63946;stroke-dasharray:none;stroke-width:5' })
+  el('circle', { class: 'stn noentry', cx: X.auth, cy: Y_NO, r: 13 })
+  el('rect', { x: X.auth - 8, y: Y_NO - 2, width: 16, height: 4, fill: C.cream })
+  text(X.auth, Y_NO + 30, 'No entry', '')
+  text(X.auth, Y_NO + 46, '401 no token, 403 wrong role', 'sm')
+  parts.block = el('rect', { class: 'blockbox', x: X.bucket - 70, y: Y_REQ - 70, width: 140, height: 100, rx: 8 })
+  stn(X.bucket, Y_REQ, '', null)
+  text(X.bucket, Y_REQ - 82, 'Limiter', '')
+  text(X.bucket, Y_REQ - 98, 'token bucket as a signal block', 'sm')
+  parts.lamps = []
+  for (let i = 0; i < 20; i++) { const col = i % 10, row = Math.floor(i / 10); parts.lamps.push(el('circle', { class: 'lampoff', cx: X.bucket - 58 + col * 13, cy: Y_REQ - 52 + row * 14, r: 4.5 })) }
+  parts.tokText = text(X.bucket - 82, Y_REQ - 34, '', 'mono', 'end')
+  text(X.bucket - 82, Y_REQ - 18, 'tokens in the block', 'sm', 'end')
+  el('path', { class: 'line stub', d: `M${X.bucket} ${Y_REQ + 13} V${Y_NO - 14}`, style: 'stroke:#ffb703' })
+  el('rect', { class: 'stn depot', x: X.bucket - 40, y: Y_NO - 14, width: 80, height: 28, rx: 4, style: 'stroke:#ffb703' })
+  text(X.bucket, Y_NO + 5, 'Siding', '', 'middle')
+  text(X.bucket, Y_NO + 34, 'held with 429 and Retry-After', 'sm')
+  stn(X.cache, Y_REQ, 'Cache', 'LRU with ETags', { inter: true, cls: 'inter', r: 15, below: true })
+  parts.cacheList = el('g', {})
+  el('rect', { class: 'stn depot', x: X.origin - 46, y: Y_REQ - 22, width: 92, height: 44, rx: 6 })
+  text(X.origin, Y_REQ - 34, 'Origin', '')
+  text(X.origin, Y_REQ + 40, 'handler depot', 'sm')
+  parts.queue = text(X.origin, Y_REQ + 5, '0', 'mono')
+  const L = [
+    { key: 'rate', label: 'Rate', unit: 'trains/s', min: 0, max: 14, step: 0.5, color: C.cobalt, fmt: (v) => v.toFixed(1) },
+    { key: 'auth', label: 'Ticketed', unit: '%', min: 0, max: 100, step: 5, scale: .01, color: C.green, fmt: (v) => String(v) },
+    { key: 'repeat', label: 'Repeat URLs', unit: '%', min: 0, max: 100, step: 5, scale: .01, color: C.green, fmt: (v) => String(v) },
+    { key: 'refill', label: 'Refill', unit: 'tokens/s', min: 0, max: 10, step: 0.5, color: C.amber, fmt: (v) => v.toFixed(1) },
+    { key: 'cap', label: 'Capacity', unit: 'tokens', min: 1, max: 20, step: 1, color: C.amber, fmt: (v) => String(v), after: (v) => { tokens = Math.min(tokens, v) } },
+    { key: 'slots', label: 'Cache slots', unit: 'entries', min: 1, max: 8, step: 1, color: C.scarlet, fmt: (v) => String(v), after: (v) => { while (cache.length > v) cache.pop(); renderCache() } },
+  ]
+  el('rect', { x: 40, y: 494, width: 1120, height: 56, rx: 6, fill: '#0e2448', stroke: '#33415c', 'stroke-width': 2 })
+  text(58, 516, 'Signal box', '', 'start')
+  text(58, 532, 'six levers, drag or arrow keys', 'sm', 'start')
+  L.forEach((o, i) => lever({ ...o, x: 300 + i * 150 }))
+}
+function lever(o) {
+  const g = el('g', { class: 'lever', tabindex: 0, role: 'slider', 'aria-label': `${o.label} in ${o.unit}`, 'aria-valuemin': o.min, 'aria-valuemax': o.max })
+  const y0 = 470, y1 = 420
+  el('rect', { class: 'slot', x: o.x - 6, y: y1 - 8, width: 12, height: y0 - y1 + 16, rx: 6 }, g)
+  const arm = el('line', { class: 'handle', x1: o.x, y1: y0 + 12, x2: o.x, y2: y0, stroke: o.color }, g)
+  const knob = el('circle', { class: 'knob', cx: o.x, cy: y0, r: 9 }, g)
+  el('rect', { class: 'plate', x: o.x - 60, y: 502, width: 120, height: 40, rx: 4 }, g)
+  const v = text(o.x, 520, '', 'mono', 'middle', g)
+  text(o.x, 534, `${o.label}, ${o.unit}`, 'sm', 'middle', g)
+  let raw = o.scale ? cfg[o.key] / o.scale : cfg[o.key]
+  const paint = () => {
+    const t = (raw - o.min) / (o.max - o.min), y = y0 - (y0 - y1) * t
+    knob.setAttribute('cy', y); arm.setAttribute('y2', y)
+    v.textContent = o.fmt(raw)
+    g.setAttribute('aria-valuenow', raw); g.setAttribute('aria-valuetext', `${o.fmt(raw)} ${o.unit}`)
+  }
+  const set = (n) => { raw = Math.max(o.min, Math.min(o.max, Math.round(n / o.step) * o.step)); cfg[o.key] = o.scale ? raw * o.scale : raw; o.after?.(raw); paint() }
+  let drag = null
+  const pxPerStep = () => Math.max(2, (50 / ((o.max - o.min) / o.step)) * scale)
+  g.addEventListener('pointerdown', (e) => { drag = { y: e.clientY, raw }; g.setPointerCapture(e.pointerId); e.preventDefault() })
+  g.addEventListener('pointermove', (e) => { if (drag) set(drag.raw + ((drag.y - e.clientY) / pxPerStep()) * o.step) })
+  const end = () => { drag = null }
+  g.addEventListener('pointerup', end); g.addEventListener('pointercancel', end)
+  g.addEventListener('wheel', (e) => { e.preventDefault(); set(raw + (e.deltaY < 0 ? o.step : -o.step)) }, { passive: false })
+  g.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowUp' || e.key === 'ArrowRight') set(raw + o.step)
+    else if (e.key === 'ArrowDown' || e.key === 'ArrowLeft') set(raw - o.step)
+    else if (e.key === 'Home') set(o.min); else if (e.key === 'End') set(o.max); else return
+    e.preventDefault()
+  })
+  paint()
+}
+function renderCache() {
+  parts.cacheList.replaceChildren()
+  const x = X.cache - 64
+  text(x, Y_REQ + 76, cache.length ? 'in the cache, newest first' : 'cache empty, misses run to the origin', 'sm', 'start', parts.cacheList)
+  cache.forEach((c, i) => { const t = text(x, Y_REQ + 92 + i * 14, `${c.url}  ${c.etag}`, 'sm', 'start', parts.cacheList); t.style.fill = i === 0 ? C.cream : C.dim })
+}
+
+const canvas = $('trains'), ctx = canvas.getContext('2d')
+let scale = 1, ox = 0, oy = 0
+function resize() {
+  const r = $('frame').getBoundingClientRect()
+  canvas.width = Math.round(r.width * devicePixelRatio); canvas.height = Math.round(r.height * devicePixelRatio)
+  scale = Math.min(r.width / 1200, r.height / 560); ox = (r.width - 1200 * scale) / 2; oy = (r.height - 560 * scale) / 2
+  ctx.setTransform(devicePixelRatio * scale, 0, 0, devicePixelRatio * scale, devicePixelRatio * ox, devicePixelRatio * oy)
+}
+addEventListener('resize', resize)
+const SPEED = 200
+function step(dt, now) {
+  tokens = Math.min(cfg.cap, tokens + cfg.refill * dt)
+  for (const r of reqs) {
+    if (r.status && r.phase === 'drop') { r.dropT += dt; continue }
+    if (r.phase === 'origin-wait') { if (now >= r.waitUntil) { r.status = completeOrigin(r); count(r.status); r.phase = 'ret'; r.x = X.origin; r.y = Y_REQ - 30 } continue }
+    if (r.phase === 'fwd') {
+      const tx = stageX[r.stage + 1]
+      if (reduced) { r.dwell += dt; if (r.dwell < 0.35) continue; r.dwell = 0; r.x = tx } else r.x = Math.min(r.x + SPEED * dt, tx)
+      if (r.x >= tx) {
+        r.stage++
+        const verdict = decide(r, ST[r.stage])
+        if (verdict === 'origin-work') r.phase = 'origin-wait'
+        else if (verdict) { r.status = verdict; count(verdict); r.phase = (verdict === '304' || verdict === '200 cache') ? 'loop' : 'drop' }
+      }
+    } else if (r.phase === 'loop') {
+      r.loopT += dt * (reduced ? 4 : 1.6)
+      if (r.loopT >= 1) { r.phase = 'ret'; r.x = X.cache; r.y = Y_RET }
+    } else if (r.phase === 'ret') {
+      if (r.y > Y_RET) r.y = reduced ? Y_RET : Math.max(Y_RET, r.y - SPEED * 1.4 * dt)
+      else { r.x -= SPEED * (reduced ? 4 : 1.3) * dt; if (r.x <= X.source) finish(r) }
+    }
+  }
+  for (const r of reqs) if (r.phase === 'drop' && r.dropT > 1.1) finish(r)
+}
+function count(s) { tallies[s] = (tallies[s] ?? 0) + 1; renderTallies() }
+function finish(r) { reqs.splice(reqs.indexOf(r), 1) }
+function train(x, y, color, alpha = 1) {
+  ctx.globalAlpha = alpha; ctx.fillStyle = color
+  ctx.beginPath(); ctx.roundRect(x - 10, y - 5, 20, 10, 3); ctx.fill()
+  ctx.fillStyle = '#0b1d3a'; ctx.fillRect(x - 6, y - 2, 4, 4); ctx.fillRect(x + 2, y - 2, 4, 4)
+  ctx.globalAlpha = 1
+}
+function draw(now) {
+  ctx.clearRect(-ox / scale, -oy / scale, 1200 + 2 * ox / scale, 560 + 2 * oy / scale)
+  let queue = 0, held = 0
+  for (const r of reqs) {
+    let x = r.x, y = r.y, a = 1
+    if (r.phase === 'drop') {
+      const p = Math.min(r.dropT / 0.5, 1)
+      x = stageX[r.stage]; y = Y_REQ + 13 + (Y_NO - 26 - Y_REQ) * p
+      a = Math.max(0, 1 - Math.max(0, r.dropT - 0.55) / 0.5)
+      if (r.status === '429') { x = X.bucket - 24 + (held % 5) * 12; y = Y_REQ + 40 + Math.floor(held / 5) * 12; held++ }
+    }
+    if (r.phase === 'loop') { const t = r.loopT; x = X.cache + Math.sin(Math.PI * t) * 68; y = (Y_REQ + Y_RET) / 2 + Math.cos(Math.PI * t) * (Y_REQ - Y_RET) / 2 }
+    if (r.phase === 'origin-wait') { x = X.origin - 30 + (queue++ % 3) * 14; y = Y_REQ }
+    const color = r.status === '429' ? C.amber : (r.status === '401' || r.status === '403') ? C.scarlet : r.status === '200 origin' ? C.green : r.status ? C.sky : C.cream
+    train(x, y, color, a)
+  }
+  const lit = Math.floor(tokens)
+  for (let i = 0; i < 20; i++) { const l = parts.lamps[i]; l.style.display = i < cfg.cap ? '' : 'none'; l.setAttribute('class', i < lit ? 'lampon' : (lit === 0 ? 'lampred' : 'lampoff')) }
+  parts.tokText.textContent = tokens.toFixed(1)
+  parts.queue.textContent = queue
+  const storm = now - starveAt < 1500
+  parts.block.style.stroke = storm ? C.scarlet : C.amber
+  $('service').classList.toggle('warn', storm)
+  $('serviceMsg').textContent = storm ? `Severe delays at Limiter: 429 storm, ${starved} trains held` : 'Good service on all lines'
+}
+const ORDER = ['200 origin', '200 cache', '304', '401', '403', '429']
+function renderTallies() { $('tallies').innerHTML = ORDER.map((k) => `<div><div class="k">${k}</div><div class="v${tallies[k] ? '' : ' quiet'}">${tallies[k]}</div></div>`).join('') }
+$('burst').onclick = () => { for (let i = 0; i < 16; i++) setTimeout(spawn, i * 45) }
+$('pause').onclick = () => { paused = !paused; $('pause').classList.toggle('on', paused); $('pause').setAttribute('aria-pressed', String(paused)); $('pause').lastChild.textContent = paused ? 'Release all signals' : 'Hold all signals' }
+let last = performance.now(), acc = 0
+function loop(now) {
+  const dt = Math.min((now - last) / 1000, 0.05); last = now
+  if (!paused) { acc += dt * cfg.rate; while (acc >= 1) { spawn(); acc -= 1 } step(dt, now) }
+  draw(now)
+  requestAnimationFrame(loop)
+}
+setInterval(() => { if (!paused) for (let i = 0; i < 10; i++) setTimeout(spawn, i * 55) }, 11000)
+drawBoard(); renderCache(); renderTallies(); resize(); requestAnimationFrame(loop)
+</script>
+</body>
+</html>

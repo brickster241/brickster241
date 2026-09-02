@@ -1,0 +1,4 @@
+{
+  "buildPath": "code",
+  "buildPathNote": "no image-generation tool in this harness; code-led is the only path (new-work.md), recorded so build-phase reads the run correctly"
+}
