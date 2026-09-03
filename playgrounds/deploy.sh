@@ -1,12 +1,13 @@
 #!/usr/bin/env bash
 # Deploy each built playground to its repository's gh-pages branch.
 # Usage: playgrounds/deploy.sh "commit message"   (run only after the finish review ships)
+# Plain bash 3 (macOS default): no associative arrays.
 set -euo pipefail
 MSG="${1:-design: new world}"
-declare -A REPO=( [pulsehttp]=PulseHTTP [gitengine]=GitEngine [jsonlp]=JSON-Lexer-Parser-From-Scratch [wcgo]=wc-Go )
 HERE="$(cd "$(dirname "$0")" && pwd)"
+repo_for() { case "$1" in pulsehttp) echo PulseHTTP ;; gitengine) echo GitEngine ;; jsonlp) echo JSON-Lexer-Parser-From-Scratch ;; wcgo) echo wc-Go ;; *) echo "unknown site: $1" >&2; exit 1 ;; esac; }
 for site in pulsehttp gitengine jsonlp wcgo; do
-  repo="$HOME/Coding/${REPO[$site]}"
+  repo="$HOME/Coding/$(repo_for "$site")"
   wt="$(mktemp -d)"
   git -C "$repo" worktree add -q "$wt" gh-pages
   cp "$HERE/$site/index.html" "$wt/index.html"
