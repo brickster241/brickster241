@@ -35,21 +35,21 @@ Click through; each one starts flying itself until you touch it.
 <table>
 <tr>
 <td width="50%">
-<a href="https://brickster241.github.io/GitEngine/"><img src="assets/play-gitengine.png" alt="GitEngine — a repository from first principles: explorer, commit graph with a merge landed, and the object store glowing as fresh objects arrive"></a>
+<a href="https://brickster241.github.io/GitEngine/"><img src="assets/play-gitengine.png" alt="GitEngine as a braided river: headwaters for the working tree, a staging pool, five branch channels with a resolved conflict and a rebase oxbow, and the object store as sediment cores"></a>
 <sub><b><a href="https://brickster241.github.io/GitEngine/">GitEngine · review room</a></b> — add, commit, branch, merge; every SHA verifiable against native git</sub>
 </td>
 <td width="50%">
-<a href="https://brickster241.github.io/PulseHTTP/"><img src="assets/play-pulsehttp.png" alt="PulseHTTP — the request path live: comet-trail requests, a 429 storm stacking at the token bucket, and a completion-pulse EKG beating one beat per response"></a>
+<a href="https://brickster241.github.io/PulseHTTP/"><img src="assets/play-pulsehttp.png" alt="PulseHTTP as a midnight metro board: requests as trains on a cobalt line through Router, Auth barrier, Limiter and Cache, with six signal-box levers"></a>
 <sub><b><a href="https://brickster241.github.io/PulseHTTP/">PulseHTTP · strip chart</a></b> — starve the token bucket yourself; 401 ≠ 403, live tallies</sub>
 </td>
 </tr>
 <tr>
 <td width="50%">
-<a href="https://brickster241.github.io/JSON-Lexer-Parser-From-Scratch/"><img src="assets/play-jsonlp.png" alt="JSON-LP railroad — the repo's actual Python parser running via Pyodide with a differential verdict"></a>
+<a href="https://brickster241.github.io/JSON-Lexer-Parser-From-Scratch/"><img src="assets/play-jsonlp.png" alt="JSON-LP as a night mail sorting office: the repository's own lexer and parser running in CPython, letters sorted into pigeonholes, two inspectors' stamps and a wax seal"></a>
 <sub><b><a href="https://brickster241.github.io/JSON-Lexer-Parser-From-Scratch/">JSON-LP · railroad</a></b> — the repo's real parser via Pyodide; every keystroke is a differential test</sub>
 </td>
 <td width="50%">
-<a href="https://brickster241.github.io/wc-Go/"><img src="assets/play-wcgo.png" alt="wc-Go counting room — odometer counters and the UTF-8 byte carried across a chunk boundary"></a>
+<a href="https://brickster241.github.io/wc-Go/"><img src="assets/play-wcgo.png" alt="wc-Go as a soroban: lines, words, bytes and characters on four thirteen-rod frames, with the UTF-8 carry shown at a chunk seam"></a>
 <sub><b><a href="https://brickster241.github.io/wc-Go/">wc-Go · counting room</a></b> — watch a rune get cut by a 32KB seam and counted correctly anyway</sub>
 </td>
 </tr>

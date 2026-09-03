@@ -11,34 +11,35 @@
 <link href="https://fonts.googleapis.com/css2?family=Alegreya+Sans:ital,wght@0,400;0,700;1,400&family=Alegreya:ital,wght@1,400;1,600&family=Fira+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
   :root {
-    --water: #061a1f; --chart: #08252a; --chart2: #0c3238; --rule: #1a4a50;
-    --channel: #1fb6a6; --channel2: #62d9e8; --sand: #c9a86a; --gold: #f2c14e; --coral: #ff6b57;
-    --ink: #e6f1ef; --dim: #9fb8b4; --faint: #5f7a77;
+    --water: #071a2c; --chart: #0a2540; --chart2: #0e3254; --rule: #1d4a72;
+    --channel: #2e8fe6; --channel2: #6fc6ff; --sand: #c9a86a; --gold: #f2c14e; --coral: #ff6b57;
+    --ink: #e8f1fb; --dim: #a3b9d6; --faint: #7f9ab8;
     --sans: 'Alegreya Sans', 'Gill Sans', sans-serif;
     --serif: 'Alegreya', Georgia, serif;
     --mono: 'Fira Mono', ui-monospace, Menlo, monospace;
   }
   * { box-sizing: border-box; margin: 0; }
   html { color-scheme: dark; background: var(--water); }
-  body { background: var(--water); color: var(--ink); font-family: var(--sans); font-size: 17px; line-height: 1.55; -webkit-font-smoothing: antialiased; }
+  body { background: var(--water); color: var(--ink); font-family: var(--sans); font-size: 17px; line-height: 1.55; -webkit-font-smoothing: antialiased; overflow-x: hidden; }
   ::selection { background: var(--channel); color: var(--water); }
   :focus-visible { outline: 2px solid var(--gold); outline-offset: 3px; }
-  a { color: var(--channel2); text-decoration: none; border-bottom: 1px solid rgba(98,217,232,.35); }
+  a { color: var(--channel2); text-decoration: none; border-bottom: 1px solid rgba(111,198,255,.35); }
   a:hover { border-color: var(--channel2); }
   * { scrollbar-color: var(--rule) var(--chart); scrollbar-width: thin; }
   em, .water { font-family: var(--serif); font-style: italic; }
 
-  header { display: grid; grid-template-columns: 1fr auto; gap: 24px; align-items: end; padding: 26px clamp(18px, 4vw, 48px) 18px; border-bottom: 1px solid var(--rule); }
+  header { padding: 26px clamp(18px, 4vw, 48px) 0; border-bottom: 1px solid var(--rule); }
   h1 { font-size: clamp(30px, 3.6vw, 40px); font-weight: 700; line-height: 1; }
   h1 em { color: var(--channel2); font-weight: 400; }
   .sub { color: var(--dim); margin-top: 8px; font-size: 16px; max-width: 72ch; }
-  .gauge { min-width: 320px; max-width: 460px; border: 1px solid var(--rule); border-radius: 4px; padding: 10px 14px; display: flex; gap: 12px; align-items: center; font-size: 15px; background: var(--chart); }
-  .gauge .f { width: 12px; height: 12px; border-radius: 2px; background: var(--channel); flex: none; }
-  .gauge.warn { border-color: var(--coral); color: var(--coral); }
-  .gauge.warn .f { background: var(--coral); }
+  .gauge { margin: 18px 0 20px; border: 1px solid var(--rule); border-radius: 3px; padding: 12px 16px; display: flex; gap: 14px; align-items: center; font-size: 15px; background: var(--chart); max-width: 720px; }
+  .gauge .f { width: 36px; height: 14px; flex: none; color: var(--channel); display: block; }
+  .gauge.warn { color: var(--coral); border-color: var(--coral); }
+  .gauge.warn .f { color: var(--coral); }
 
-  .chartwrap { padding: 8px clamp(10px, 2vw, 24px) 0; overflow-x: auto; }
-  .frame { position: relative; width: 100%; min-width: 960px; aspect-ratio: 1200 / 440; max-height: 66dvh; margin: 0 auto; }
+  .chartwrap { padding: 8px clamp(10px, 2vw, 24px) 0; }
+  .frame { position: relative; width: 100%; aspect-ratio: 1200 / 400; max-height: 62dvh; margin: 0 auto; }
+  .frame.portrait { aspect-ratio: 420 / 800; max-height: none; }
   .frame svg, .frame canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
   .frame canvas { pointer-events: none; }
   svg text { font-family: var(--sans); font-size: 13px; fill: var(--ink); }
@@ -52,17 +53,41 @@
   .conf { fill: var(--gold); stroke: var(--water); stroke-width: 3; cursor: pointer; }
   .conf.head { stroke: var(--ink); stroke-width: 3; }
   .conf.sel { fill: var(--ink); }
-  .pool { fill: var(--chart2); stroke: var(--channel); stroke-width: 2; }
-  .poollvl { fill: var(--channel); opacity: .35; }
-  .strata { cursor: pointer; }
-  .strata rect { fill: var(--chart2); stroke: var(--rule); stroke-width: 1.5; transition: stroke .25s, fill .25s; }
-  .strata.fresh rect { stroke: var(--gold); }
-  .strata.sel rect { fill: var(--rule); stroke: var(--ink); }
-  .strata.blob rect { fill: #0f3d3a; } .strata.tree rect { fill: #0f2f44; } .strata.commit rect { fill: #3a2f10; }
-  .strata text { pointer-events: none; }
+  .pool { stroke: none; }
+  .poolrim { fill: none; stroke: var(--channel); stroke-width: 2; }
+  .poollvl { fill: var(--channel); opacity: .28; transition: d .4s; }
+  .trib { fill: none; stroke-linecap: round; transition: stroke .25s, stroke-width .25s; }
+  .trib.sync { stroke: var(--faint); stroke-width: 2.5; opacity: .7; }
+  .trib.changed { stroke: var(--gold); stroke-width: 4; }
+  .trib.staged { stroke: var(--channel); stroke-width: 4; }
+  text.st-changed { fill: var(--gold); } text.st-staged { fill: var(--channel2); }
+  text.more { fill: var(--channel2); cursor: pointer; text-decoration: underline; }
+  .chan.up { opacity: .35; stroke-dasharray: 1 14; }
+  .chan.oxbow { opacity: .3; stroke-dasharray: 6 8; }
+  .conf.oxbow { opacity: .45; }
   .file { cursor: pointer; }
   .file rect { fill: transparent; }
-  .file:hover text, .file.sel text { fill: var(--gold); }
+  .file:hover rect, .file.sel rect { fill: var(--chart); }
+  .file:hover text.water, .file.sel text.water { fill: var(--gold); }
+  .rt { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; padding: 12px clamp(18px, 4vw, 48px) 8px; border-top: 1px solid var(--rule); }
+  .rt b { font-weight: 700; font-size: 15px; }
+  .rt span { font-size: 13px; color: var(--dim); text-align: right; }
+  .records { display: grid; grid-template-columns: 1.15fr .8fr 1.25fr; }
+  .rec { border-right: 1px solid var(--rule); min-width: 0; display: flex; flex-direction: column; }
+  .rec:last-child { border-right: 0; }
+  .rh { display: flex; justify-content: space-between; align-items: baseline; padding: 9px 16px 5px; font-size: 14px; }
+  .rh b { font-weight: 700; } .rh span { font-size: 12.5px; color: var(--dim); }
+  .rb { display: flex; flex-wrap: wrap; gap: 6px; align-content: flex-start; padding: 4px 16px 14px; height: 184px; overflow-y: auto; scrollbar-width: thin; scrollbar-color: var(--channel) var(--chart); }
+  .rb::-webkit-scrollbar { width: 8px; } .rb::-webkit-scrollbar-thumb { background: var(--channel); border-radius: 4px; } .rb::-webkit-scrollbar-track { background: var(--chart); }
+  .ob { border: 1.5px solid var(--rule); border-radius: 4px; background: var(--chart2); color: var(--ink); padding: 4px 10px 5px; cursor: pointer; text-align: left; font: 400 12px var(--sans); line-height: 1.3; display: flex; flex-direction: column; min-width: 0; max-width: 100%; transition: border-color .25s, background .25s; }
+  .ob b { font: 400 11.5px var(--mono); color: var(--dim); white-space: nowrap; }
+  .ob i { font-family: var(--serif); font-style: italic; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 220px; font-size: 13.5px; }
+  .ob .tag { font-size: 11px; color: var(--gold); }
+  .commits .ob { background: #3a2f10; border-color: #5c4a1c; } .trees .ob { background: #23284f; border-color: #3d4478; } .blobs .ob { background: #123a60; border-color: #205d90; }
+  .blobs .ob i { font-family: var(--mono); font-style: normal; font-size: 11.5px; }
+  .ob.fresh { border-color: var(--gold); } .ob.sel { background: var(--rule); border-color: var(--ink); }
+  .ob:hover { border-color: var(--channel2); }
+  .ob:focus-visible { outline: 2px solid var(--channel2); outline-offset: 2px; }
   .rapids { stroke: var(--coral) !important; }
   text.rapids { fill: var(--coral) !important; }
   .flag { fill: var(--ink); }
@@ -96,53 +121,70 @@
   #inspector { flex: 1; min-height: 0; overflow: auto; padding: 8px 14px; font: 12px/1.6 var(--mono); color: var(--dim); white-space: pre-wrap; word-break: break-all; background: var(--chart); }
   #inspector b { color: var(--gold); font-weight: 400; }
 
-  main { max-width: 1120px; margin: 0 auto; padding: 44px clamp(18px, 4vw, 48px) 80px; display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 48px; }
-  section { margin-bottom: 44px; }
-  h2 { font-size: 26px; font-weight: 700; margin-bottom: 12px; }
-  h2 em { color: var(--channel2); font-weight: 400; }
+  main { max-width: 1120px; margin: 0 auto; padding: 44px clamp(18px, 4vw, 48px) 72px; display: grid; grid-template-columns: minmax(0, 1fr) 280px; gap: 40px; }
+  section { margin-bottom: 8px; padding-bottom: 28px; }
+  .contour { height: 14px; margin: 0 0 28px; background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 14' preserveAspectRatio='none'%3E%3Cpath d='M0 7 C 20 2, 40 12, 60 7 S 100 2, 120 7' fill='none' stroke='%23c9a86a' stroke-opacity='.45' stroke-width='1'/%3E%3C/svg%3E") repeat-x; background-size: 120px 14px; }
+  h2 { font-family: var(--serif); font-style: italic; font-weight: 400; font-size: 28px; margin-bottom: 12px; color: var(--channel2); display: flex; align-items: center; gap: 12px; }
+  h2::before { content: ''; width: 14px; height: 14px; border-radius: 50%; border: 2px solid var(--sand); background: radial-gradient(circle, var(--sand) 0 2px, transparent 2.5px); flex: none; }
   p { color: var(--dim); max-width: 66ch; margin-bottom: 12px; }
   p b, li b { color: var(--ink); font-weight: 700; }
   ul, ol { color: var(--dim); padding-left: 22px; max-width: 66ch; }
   li { margin-bottom: 10px; }
   li::marker { color: var(--gold); }
   code { font-family: var(--mono); font-size: .88em; color: var(--ink); background: var(--chart2); padding: 1px 6px; border-radius: 3px; }
-  pre { font-family: var(--mono); font-size: 13px; line-height: 1.6; background: var(--chart); border-left: 3px solid var(--channel); padding: 12px 16px; overflow-x: auto; color: var(--ink); margin: 12px 0 16px; }
-  table { border-collapse: collapse; width: 100%; max-width: 640px; font-size: 15.5px; margin: 8px 0 16px; }
-  td { text-align: left; padding: 9px 12px; border-bottom: 1px solid var(--rule); }
-  td.n { font-family: var(--mono); color: var(--gold); font-size: 14px; white-space: nowrap; }
-  aside .legend { position: sticky; top: 24px; border: 1px solid var(--rule); border-radius: 4px; padding: 14px 16px; background: var(--chart); }
-  aside .legend h3 { font-size: 17px; font-weight: 700; margin-bottom: 10px; }
-  aside .legend ul { list-style: none; padding: 0; }
-  aside .legend li { display: flex; gap: 10px; align-items: center; font-size: 15px; margin-bottom: 8px; color: var(--dim); }
-  aside .legend li .sw { width: 22px; height: 8px; border-radius: 4px; flex: none; }
-  aside .legend li .dot { width: 12px; height: 12px; border-radius: 50%; flex: none; }
-  footer { border-top: 1px solid var(--rule); padding: 18px clamp(18px, 4vw, 48px); color: var(--faint); font-size: 14px; display: flex; flex-wrap: wrap; gap: 8px 24px; }
+  pre { font-family: var(--mono); font-size: 13px; line-height: 1.6; background: var(--chart); padding: 12px 16px; overflow-x: auto; color: var(--ink); margin: 12px 0 16px; }
+  .readings { max-width: 660px; margin: 8px 0 16px; }
+  .readings .r { display: grid; grid-template-columns: 1fr 120px; gap: 14px; align-items: center; padding: 9px 0; border-bottom: 1px solid var(--rule); }
+  .readings .r .what { color: var(--ink); font-size: 15.5px; }
+  .readings .r .what small { display: block; color: var(--dim); font-size: 13.5px; }
+  .readings .level { height: 10px; background: var(--chart2); border-radius: 2px; position: relative; overflow: hidden; }
+  .readings .level i { position: absolute; inset: 0 auto 0 0; background: var(--channel); }
+  .readings .r b { font-family: var(--mono); color: var(--gold); font-weight: 500; font-size: 14px; white-space: nowrap; grid-column: 2; text-align: right; }
+  aside .key { position: sticky; top: 24px; border: 1px solid var(--sand); padding: 12px 14px 14px; background: var(--chart); }
+  aside .key h3 { font-family: var(--serif); font-style: italic; font-weight: 400; font-size: 20px; margin-bottom: 8px; color: var(--sand); }
+  aside .key ul { list-style: none; padding: 0; }
+  aside .key li { display: flex; gap: 10px; align-items: center; font-size: 14.5px; margin-bottom: 7px; color: var(--dim); }
+  aside .key li .sw { width: 22px; height: 8px; border-radius: 4px; flex: none; }
+  aside .key li .dot { width: 12px; height: 12px; border-radius: 50%; flex: none; }
+  aside .key .scale { margin-top: 12px; display: flex; align-items: flex-end; gap: 0; }
+  aside .key .scale i { width: 24px; height: 6px; border: 1px solid var(--sand); }
+  aside .key .scale i:nth-child(odd) { background: var(--sand); }
+  aside .key .scale span { font-size: 11.5px; color: var(--dim); margin-left: 8px; }
+  footer { border-top: 1px solid var(--rule); padding: 18px clamp(18px, 4vw, 48px); color: var(--faint); font-size: 14px; display: flex; flex-wrap: wrap; gap: 10px 24px; align-items: center; }
+  footer .stamp { border: 1px dashed var(--sand); color: var(--sand); padding: 6px 10px; font-family: var(--serif); font-style: italic; font-size: 14px; transform: rotate(-2deg); }
   @media (max-width: 900px) {
-    header { grid-template-columns: 1fr; align-items: start; }
-    .gauge { min-width: 0; max-width: none; }
     .console { grid-template-columns: 1fr; }
     .console > div { border-right: 0; border-bottom: 1px solid var(--rule); height: auto; min-height: 200px; max-height: 320px; }
-    .pb { grid-template-columns: repeat(4, 1fr); }
+    .pb { grid-template-columns: repeat(2, 1fr); }
     main { grid-template-columns: 1fr; gap: 24px; }
-    aside .legend { position: static; }
+    aside .key { position: static; }
+    .records { grid-template-columns: 1fr; }
+    .rec { border-right: 0; border-bottom: 1px solid var(--rule); }
+    .rec:last-child { border-bottom: 0; }
+    .rb { height: 150px; }
   }
 </style>
 </head>
 <body>
 
 <header>
-  <div>
-    <h1>GitEngine, <em>a repository as a braided river</em></h1>
-    <div class="sub">Git rebuilt from first principles in Go, surveyed like a river system. Branches are channels, commits are confluences, the object store is the sediment. Every hash is a real SHA-1, computed in this tab.</div>
-  </div>
-  <div class="gauge" id="gauge" role="status" aria-live="polite"><span class="f"></span><span id="gaugeMsg">Working tree clean.</span></div>
+  <h1>GitEngine, <em>a repository as a braided river</em></h1>
+  <div class="sub">Git rebuilt from first principles in Go, surveyed like a river system. Branches are channels, commits are confluences, the object store is the sediment. Every hash is a real SHA-1, computed in this tab.</div>
+  <div class="gauge" id="gauge" role="status" aria-live="polite"><svg class="f" viewBox="0 0 36 14" aria-hidden="true"><path d="M0 12h36v2H0zM2 4h2v8H2zM8 7h2v5H8zM14 4h2v8h-2zM20 7h2v5h-2zM26 4h2v8h-2zM32 7h2v5h-2z" fill="currentColor"/></svg><span id="gaugeMsg">Working tree clean.</span></div>
 </header>
 
 <div class="chartwrap">
   <div class="frame" id="frame">
-    <svg id="chart" viewBox="0 0 1200 440" preserveAspectRatio="xMidYMid meet" aria-label="Hydrology chart of the GitEngine repository"></svg>
+    <svg id="chart" viewBox="0 0 1200 400" preserveAspectRatio="xMidYMid meet" aria-label="Hydrology chart of the GitEngine repository"></svg>
     <canvas id="flow"></canvas>
   </div>
+</div>
+
+<div class="rt"><b>Sediment record</b><span id="strataStat">the object store, newest on top in each core. Click any stratum for its core sample.</span></div>
+<div class="records">
+  <div class="rec commits"><div class="rh"><b>Commits</b><span id="nCommits"></span></div><div class="rb" id="recCommits" aria-label="commit objects"></div></div>
+  <div class="rec trees"><div class="rh"><b>Trees</b><span id="nTrees"></span></div><div class="rb" id="recTrees" aria-label="tree objects"></div></div>
+  <div class="rec blobs"><div class="rh"><b>Blobs</b><span id="nBlobs"></span></div><div class="rb" id="recBlobs" aria-label="blob objects"></div></div>
 </div>
 
 <div class="console">
@@ -171,9 +213,9 @@
     <section>
       <h2>What you are looking at</h2>
       <p><b>GitEngine</b> is Git's core, written again from first principles in Go: a content-addressed object store, an index, refs, and seventeen commands including three-way merge with diff3-style conflicts and rebase. The chart above is a live repository running in your browser. The hashing is not imitated: every object is serialized exactly the way Git serializes it and hashed with SHA-1, so the hashes you see are the hashes native Git would produce for the same bytes.</p>
-      <p>Read it downstream. The <em>headwaters</em> are your working tree, one tributary per file. The <em>staging pool</em> is the index. The <em>channels</em> are branches, and each gold marker is a commit: a confluence where the pool's contents joined the record. The <em>sediment</em> below is the object store itself, every blob, tree and commit laid down as a stratum with its hash.</p>
+      <p>Read it downstream. The <em>headwaters</em> are your working tree, one tributary per file. The <em>staging pool</em> is the index. The <em>channels</em> are branches, and each gold marker is a commit: a confluence where the pool's contents joined the record. The <em>sediment</em> is the object store itself, every blob, tree and commit laid down as a stratum with its hash.</p>
     </section>
-
+    <div class="contour"></div>
     <section>
       <h2>How the river reads</h2>
       <ol>
@@ -184,7 +226,7 @@
         <li><b>merge exp</b> finds the merge base by walking both ancestries, then joins the two channels. If both sides changed the same lines, the join becomes <em>rapids</em>: conflict markers land in the file, and the next commit seals the merge with two parents.</li>
       </ol>
     </section>
-
+    <div class="contour"></div>
     <section>
       <h2>Try this</h2>
       <ul>
@@ -194,40 +236,39 @@
         <li>Drop a real text file onto the page. It lands in the headwaters, untracked, until you add it.</li>
       </ul>
     </section>
-
+    <div class="contour"></div>
     <section>
-      <h2>Measured, not simulated</h2>
+      <h2>Gauge readings, measured</h2>
       <p>Parity with native Git is proved by a differential suite that runs every scenario through both GitEngine and <code>git</code> and compares the resulting hashes: commit chains, merge bases, merge commits and rebased tips are identical byte for byte. The suite caught three real encoding bugs on its first day, which is why it exists.</p>
-      <table>
-        <tbody>
-          <tr><td>Differential parity with native git</td><td class="n">15 of 15</td><td>hash-identical scenarios</td></tr>
-          <tr><td>Bulk ingest of 2,000 files</td><td class="n">349 ms</td><td>against 706 ms for git, on the repository's harness</td></tr>
-          <tr><td>Integrity check</td><td class="n">28,555 objects/s</td><td>fsck over the whole store</td></tr>
-          <tr><td>Concurrent writers</td><td class="n">8, 0 lost updates</td><td>index locking with atomic renames</td></tr>
-        </tbody>
-      </table>
-      <p>To check it: clone the repository and run <code>go test ./difftest/</code>. It needs a real <code>git</code> on your path, because that is what it compares against.</p>
+      <div class="readings">
+        <div class="r"><div class="what">Differential parity with native git<small>hash-identical scenarios</small></div><div class="level"><i style="width:100%"></i></div><b>15 of 15</b></div>
+        <div class="r"><div class="what">Bulk ingest of 2,000 files<small>against 706 ms for git, on the repository's harness</small></div><div class="level"><i style="width:49%"></i></div><b>349 ms</b></div>
+        <div class="r"><div class="what">Integrity check<small>fsck over the whole store</small></div><div class="level"><i style="width:86%"></i></div><b>28,555 objects/s</b></div>
+        <div class="r"><div class="what">Concurrent writers<small>index locking with atomic renames</small></div><div class="level"><i style="width:100%"></i></div><b>8, 0 lost updates</b></div>
+      </div>
+      <p>To check it: clone <a href="https://github.com/brickster241/GitEngine" target="_blank" rel="noreferrer">the repository</a> and run <code>go test ./difftest/</code>. It needs a real <code>git</code> on your path, because that is what it compares against.</p>
     </section>
   </div>
   <aside>
-    <div class="legend">
-      <h3>Reading the chart</h3>
+    <div class="key">
+      <h3>Key</h3>
       <ul>
         <li><span class="sw" style="background:var(--channel)"></span><span>A channel: one branch</span></li>
         <li><span class="dot" style="background:var(--gold)"></span><span>A confluence: one commit</span></li>
         <li><span class="dot" style="background:var(--gold);border:3px solid var(--ink)"></span><span>HEAD, the survey station</span></li>
         <li><span class="sw" style="background:var(--coral)"></span><span>Rapids: a merge conflict</span></li>
-        <li><span class="sw" style="background:#0f3d3a;border:1px solid var(--rule)"></span><span>Blob stratum</span></li>
-        <li><span class="sw" style="background:#0f2f44;border:1px solid var(--rule)"></span><span>Tree stratum</span></li>
+        <li><span class="sw" style="background:#123a60;border:1px solid var(--rule)"></span><span>Blob stratum, a file's content</span></li>
+        <li><span class="sw" style="background:#23284f;border:1px solid var(--rule)"></span><span>Tree stratum, a directory listing</span></li>
         <li><span class="sw" style="background:#3a2f10;border:1px solid var(--rule)"></span><span>Commit stratum</span></li>
-        <li><span>Source: <a href="https://github.com/brickster241/GitEngine" target="_blank" rel="noreferrer">github.com/brickster241/GitEngine</a></span></li>
+        <li><span class="sw" style="background:transparent;border:1px dashed var(--channel)"></span><span>Oxbow: a rebased-away channel, unreachable</span></li>
       </ul>
+      <div class="scale"><i></i><i></i><i></i><i></i><span>one commit</span></div>
     </div>
   </aside>
 </main>
 
 <footer>
-  <span>GitEngine by Ashish Verma.</span>
+  <span class="stamp">Surveyed by Ashish Verma</span>
   <span>Byte-for-byte parity with native git, proved by a differential suite, not claimed.</span>
 </footer>
 
@@ -236,22 +277,33 @@ const $ = (id) => document.getElementById(id)
 const NS = 'http://www.w3.org/2000/svg'
 const enc = new TextEncoder()
 const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches
-const C = { ink: '#e6f1ef', dim: '#9fb8b4', channel: '#1fb6a6', channel2: '#62d9e8', gold: '#f2c14e', coral: '#ff6b57' }
+const C = { ink: '#e8f1fb', dim: '#a3b9d6', channel: '#2e8fe6', channel2: '#6fc6ff', gold: '#f2c14e', coral: '#ff6b57' }
 
 async function sha1(bytes) { const d = await crypto.subtle.digest('SHA-1', bytes); return [...new Uint8Array(d)].map((b) => b.toString(16).padStart(2, '0')).join('') }
 function cat(...arrs) { const n = arrs.reduce((s, a) => s + a.length, 0); const out = new Uint8Array(n); let o = 0; for (const a of arrs) { out.set(a, o); o += a.length } return out }
 const hexToBytes = (hex) => new Uint8Array(hex.match(/../g).map((h) => parseInt(h, 16)))
 
 const R = {
-  objects: new Map(), refs: new Map([['main', null]]), head: 'main',
-  worktree: new Map([['README.md', '# sandbox\nA repo that lives in your tab.\n'], ['src/main.go', 'package main\n\nfunc main() {\n\tprintln("hello")\n}\n'], ['docs/notes.md', 'merge me later\n']]),
+  objects: new Map(), refs: new Map([['main', null]]), head: 'main', names: new Map(),
+  worktree: new Map([
+    ['README.md', '# GitEngine sandbox\nA repository that lives in your tab.\n'],
+    ['src/main.go', 'package main\n\nfunc main() {\n\tprintln("hello")\n}\n'],
+    ['src/store.go', 'package store\n\n// content-addressed object store\n'],
+    ['src/index.go', 'package index\n\n// the staging area\n'],
+    ['docs/notes.md', 'survey notes\n'],
+    ['Makefile', 'build:\n\tgo build ./...\n'],
+    ['LICENSE', 'MIT\n'],
+    ['.gitignore', 'bin/\n'],
+  ]),
   index: new Map(),
 }
 let selected = 'README.md', prevObjects = new Set(), conflictPaths = []
 
-async function putBlob(content) {
+async function putBlob(content, path) {
   const body = enc.encode(content); const full = cat(enc.encode(`blob ${body.length}\0`), body); const sha = await sha1(full)
-  if (!R.objects.has(sha)) R.objects.set(sha, { type: 'blob', size: body.length, content }); return sha
+  if (!R.objects.has(sha)) R.objects.set(sha, { type: 'blob', size: body.length, content })
+  if (path && !R.names.has(sha)) R.names.set(sha, path)
+  return sha
 }
 async function putTreeFrom(paths) {
   async function build(prefix) {
@@ -281,6 +333,24 @@ function commitFiles(sha) {
   const walk = (treeSha, prefix) => { for (const e of R.objects.get(treeSha).entries) { if (e.type === 'tree') walk(e.sha, prefix + e.name + '/'); else out.set(prefix + e.name, { sha: e.sha, content: R.objects.get(e.sha).content }) } }
   walk(R.objects.get(sha).tree, ''); return out
 }
+function mergeBase(ours, theirs) {
+  const anc = (s) => { const set = new Set(), q = [s]; while (q.length) { const x = q.shift(); if (set.has(x)) continue; set.add(x); q.push(...R.objects.get(x).parents) } return set }
+  const oursAnc = anc(ours); const q = [theirs], seen = new Set()
+  while (q.length) { const x = q.shift(); if (seen.has(x)) continue; seen.add(x); if (oursAnc.has(x)) return x; q.push(...R.objects.get(x).parents) }
+  return null
+}
+function threeWay(b, o, t, oursName, theirsName) {
+  const paths = new Set([...b.keys(), ...o.keys(), ...t.keys()]); const merged = new Map(); const conflicts = []
+  for (const p of paths) {
+    const bc = b.get(p)?.content, oc = o.get(p)?.content, tc = t.get(p)?.content
+    if (oc === tc) { if (oc !== undefined) merged.set(p, oc); continue }
+    if (oc === bc) { if (tc !== undefined) merged.set(p, tc); continue }
+    if (tc === bc) { if (oc !== undefined) merged.set(p, oc); continue }
+    conflicts.push(p); merged.set(p, `<<<<<<< ${oursName}\n${oc ?? ''}=======\n${tc ?? ''}>>>>>>> ${theirsName}\n`)
+  }
+  return { merged, conflicts }
+}
+function reachable() { const set = new Set(); const q = [...R.refs.values()].filter(Boolean); if (!R.refs.has(R.head)) q.push(R.head); while (q.length) { const x = q.shift(); if (!x || set.has(x)) continue; set.add(x); q.push(...R.objects.get(x).parents) } return set }
 const CMDS = {
   async status() {
     const head = commitFiles(headSha()); const lines = [`On branch ${R.refs.has(R.head) ? R.head : '(detached ' + R.head.slice(0, 7) + ')'}`]
@@ -295,7 +365,7 @@ const CMDS = {
   },
   async add(arg) {
     const targets = !arg || arg === '.' ? [...R.worktree.keys()] : [arg]; let n = 0
-    for (const p of targets) { if (!R.worktree.has(p)) return { err: `pathspec '${p}' did not match any files` }; const content = R.worktree.get(p); R.index.set(p, { sha: await putBlob(content), content }); n++; flow('head', 'pool') }
+    for (const p of targets) { if (!R.worktree.has(p)) return { err: `pathspec '${p}' did not match any files` }; const content = R.worktree.get(p); R.index.set(p, { sha: await putBlob(content, p), content }); n++; flow('head', 'pool') }
     for (const [p] of R.index) if (!R.worktree.has(p)) R.index.delete(p)
     return `staged ${n} file${n === 1 ? '' : 's'} (blob${n === 1 ? '' : 's'} written to the object store)`
   },
@@ -306,10 +376,12 @@ const CMDS = {
     const head = commitFiles(headSha())
     if (R.index.size === head.size && [...R.index].every(([p, v]) => head.get(p)?.content === v.content)) return { err: 'nothing to commit (index matches HEAD)' }
     const tree = await putTreeFrom(new Map([...R.index].map(([p, v]) => [p, v.sha]))); const parent = headSha()
-    const sha = await putCommit(tree, parent ? [parent] : [], m[1])
+    const parents = parent ? [parent] : []; const sealing = pendingMerge && !parents.includes(pendingMerge)
+    if (sealing) parents.push(pendingMerge)
+    const sha = await putCommit(tree, parents, m[1])
     if (R.refs.has(R.head)) R.refs.set(R.head, sha); else R.head = sha
-    conflictPaths = []; flow('pool', 'strata'); flow('pool', 'strata')
-    return `[${R.refs.has(R.head) ? R.head : 'detached'} ${sha.slice(0, 7)}] ${m[1]}`
+    conflictPaths = []; pendingMerge = null; flow('pool', 'strata'); flow('pool', 'strata')
+    return `[${R.refs.has(R.head) ? R.head : 'detached'} ${sha.slice(0, 7)}] ${m[1]}${sealing ? '. Merge sealed with two parents' : ''}`
   },
   async log() {
     let sha = headSha(); if (!sha) return '(no commits yet)'
@@ -335,29 +407,39 @@ const CMDS = {
   async merge(arg) {
     if (!arg || !R.refs.has(arg)) return { err: 'usage: merge <branch>' }; if (!R.refs.has(R.head)) return { err: 'merge onto a branch, not a detached HEAD' }
     const ours = headSha(), theirs = R.refs.get(arg); if (!ours || !theirs) return { err: 'both branches need commits' }
-    const anc = (s) => { const set = new Set(), q = [s]; while (q.length) { const x = q.shift(); if (set.has(x)) continue; set.add(x); q.push(...R.objects.get(x).parents) } return set }
-    const oursAnc = anc(ours); let base = null; const q = [theirs], seen = new Set()
-    while (q.length) { const x = q.shift(); if (seen.has(x)) continue; seen.add(x); if (oursAnc.has(x)) { base = x; break } q.push(...R.objects.get(x).parents) }
+    const base = mergeBase(ours, theirs)
     if (base === theirs) return 'already up to date'
     if (base === ours) { R.refs.set(R.head, theirs); await CMDS.checkout(R.head); return `fast-forward to ${theirs.slice(0, 7)}` }
-    const b = commitFiles(base), o = commitFiles(ours), t = commitFiles(theirs)
-    const paths = new Set([...b.keys(), ...o.keys(), ...t.keys()]); const merged = new Map(); const conflicts = []
-    for (const p of paths) {
-      const bc = b.get(p)?.content, oc = o.get(p)?.content, tc = t.get(p)?.content
-      if (oc === tc) { if (oc !== undefined) merged.set(p, oc); continue }
-      if (oc === bc) { if (tc !== undefined) merged.set(p, tc); continue }
-      if (tc === bc) { if (oc !== undefined) merged.set(p, oc); continue }
-      conflicts.push(p); merged.set(p, `<<<<<<< ${R.head}\n${oc ?? ''}=======\n${tc ?? ''}>>>>>>> ${arg}\n`)
-    }
+    const { merged, conflicts } = threeWay(commitFiles(base), commitFiles(ours), commitFiles(theirs), R.head, arg)
     R.worktree = new Map(merged)
-    if (conflicts.length) { R.index = new Map(); for (const [p, c] of merged) if (!conflicts.includes(p)) R.index.set(p, { sha: await putBlob(c), content: c }); selected = conflicts[0]; conflictPaths = conflicts; return { err: `CONFLICT in ${conflicts.join(', ')}. Fix the markers, then add . and commit; the merge commit gets two parents`, conflictWith: theirs } }
-    const pathsShas = new Map(); for (const [p, c] of merged) pathsShas.set(p, await putBlob(c))
+    if (conflicts.length) { R.index = new Map(); for (const [p, c] of merged) if (!conflicts.includes(p)) R.index.set(p, { sha: await putBlob(c, p), content: c }); selected = conflicts[0]; conflictPaths = conflicts; return { err: `CONFLICT in ${conflicts.join(', ')}. Fix the markers, then add . and commit; the merge commit gets two parents`, conflictWith: theirs } }
+    const pathsShas = new Map(); for (const [p, c] of merged) pathsShas.set(p, await putBlob(c, p))
     const tree = await putTreeFrom(pathsShas); const sha = await putCommit(tree, [ours, theirs], `merge ${arg} into ${R.head}`)
     R.refs.set(R.head, sha); await CMDS.checkout(R.head)
     return `merge commit ${sha.slice(0, 7)} (two parents: ${ours.slice(0, 7)}, ${theirs.slice(0, 7)})`
   },
+  async rebase(arg) {
+    if (!arg || !R.refs.has(arg)) return { err: 'usage: rebase <branch>' }; if (!R.refs.has(R.head)) return { err: 'rebase a branch, not a detached HEAD' }
+    if (arg === R.head) return { err: 'cannot rebase a branch onto itself' }
+    const tip = headSha(), onto = R.refs.get(arg); if (!tip || !onto) return { err: 'both branches need commits' }
+    const base = mergeBase(tip, onto)
+    if (base === onto) return 'already up to date'
+    if (base === tip) { R.refs.set(R.head, onto); await CMDS.checkout(R.head); return `fast-forward: ${R.head} now at ${onto.slice(0, 7)}` }
+    const chain = []; let s = tip
+    while (s && s !== base) { const c = R.objects.get(s); if (c.parents.length > 1) return { err: `rebase would replay the merge commit ${s.slice(0, 7)}; not supported here` }; chain.unshift(s); s = c.parents[0] }
+    let newTip = onto; const replayed = []
+    for (const old of chain) {
+      const c = R.objects.get(old)
+      const { merged, conflicts } = threeWay(commitFiles(c.parents[0]), commitFiles(newTip), commitFiles(old), arg, old.slice(0, 7))
+      if (conflicts.length) return { err: `rebase stopped while replaying ${old.slice(0, 7)} '${c.message}': conflict in ${conflicts.join(', ')}. Merge instead, or drop the commit` }
+      const pathsShas = new Map(); for (const [p, content] of merged) pathsShas.set(p, await putBlob(content, p))
+      const tree = await putTreeFrom(pathsShas); newTip = await putCommit(tree, [newTip], c.message); replayed.push(`${old.slice(0, 7)} replayed as ${newTip.slice(0, 7)}`)
+    }
+    R.refs.set(R.head, newTip); await CMDS.checkout(R.head); flow('strata', 'head')
+    return `rebased ${chain.length} commit${chain.length === 1 ? '' : 's'} of ${R.head} onto ${arg}: ${replayed.join('; ')}. The old commits stay in the sediment as an oxbow, unreachable`
+  },
   async 'cat-file'(arg) { const sha = arg === 'HEAD' ? headSha() : [...R.objects.keys()].find((s) => s.startsWith(arg ?? '')); if (!sha) return { err: `unknown object '${arg}'` }; inspect(sha); return `${R.objects.get(sha).type} ${sha.slice(0, 12)} shown in the core sample` },
-  async help() { return "status, add [.|path], commit -m 'msg', log, branch [name], checkout <ref>, merge <branch>, cat-file <sha|HEAD>" },
+  async help() { return "status, add [.|path], commit -m 'msg', log, branch [name], checkout <ref>, merge <branch>, rebase <branch>, cat-file <sha|HEAD>" },
 }
 let pendingMerge = null
 async function exec(line) {
@@ -368,7 +450,6 @@ async function exec(line) {
   const before = new Set(R.objects.keys())
   let res = await fn(rest)
   if (res?.conflictWith) { pendingMerge = res.conflictWith; res = { err: res.err } }
-  if (cmd === 'commit' && pendingMerge && typeof res === 'string') { const sha = headSha(); const c = R.objects.get(sha); if (!c.parents.includes(pendingMerge)) { const fixed = await putCommit(c.tree, [...c.parents, pendingMerge], c.message); R.refs.set(R.head, fixed); res += '. Merge sealed with two parents' } pendingMerge = null }
   if (typeof res === 'string') print('out', res); else if (res?.err) print('err', res.err)
   prevObjects = before; renderAll()
 }
@@ -378,116 +459,159 @@ function print(cls, text) { const d = document.createElement('div'); d.className
 const svg = $('chart')
 function el(name, attrs = {}, parent = svg) { const n = document.createElementNS(NS, name); for (const [k, v] of Object.entries(attrs)) n.setAttribute(k, v); parent.appendChild(n); return n }
 function text(x, y, s, cls = '', anchor = 'middle', parent = svg) { const t = el('text', { x, y, 'text-anchor': anchor, class: cls }, parent); t.textContent = s; return t }
-const P = { head: { x: 120, y: 150 }, pool: { x: 330, y: 150 }, strata: { x: 720, y: 360 } }
+let portrait = false
+const G = () => portrait
+  ? { VW: 420, VH: 800, head: { rows: 6, lx: 16, ly: 84, ty: 52, cx: 90, railEnd: 176, entryX: 244 }, pool: { cx: 300, cy: 150, d: 'M240 100 C 270 80, 340 80, 360 110 S 340 210, 300 206 S 230 180, 240 100 Z', x0: 236, list: { x: 300, y: 118 } }, chan: { x0: 56, y0: 300, len: 340, lane: 36, lanes: 5, hx: 128, mouth: 680, vertical: true, K: 10 }, refs: { x: 40, y: 700, max: 6 }, contours: 8, cstep: 96 }
+  : { VW: 1200, VH: 400, head: { rows: 9, lx: 20, ly: 92, ty: 52, cx: 120, railEnd: 204, entryX: 264 }, pool: { cx: 330, cy: 150, d: 'M262 96 C 300 80, 380 80, 400 110 S 380 210, 330 206 S 250 180, 262 96 Z', x0: 256, list: { x: 330, y: 108 } }, chan: { x0: 470, y0: 110, len: 610, lane: 44, lanes: 5, mouth: 1090, vertical: false, K: 12 }, refs: { x: 1102, y: 110, max: 6 }, contours: 7, cstep: 50 }
+const P = () => portrait ? { head: { x: 90, y: 110 }, pool: { x: 300, y: 150 }, strata: { x: 210, y: 796 } } : { head: { x: 120, y: 150 }, pool: { x: 330, y: 150 }, strata: { x: 600, y: 396 } }
 const L = {}
 function drawChart() {
-  // contour lines: the chart's ground
-  for (let i = 0; i < 7; i++) el('path', { class: 'contour', d: `M0 ${60 + i * 58} C 300 ${30 + i * 58}, 600 ${90 + i * 58}, 1200 ${50 + i * 58}` })
-  // headwaters: tributaries per file
-  text(120, 52, 'Headwaters', '', 'middle'); text(120, 68, 'the working tree', 'sm')
+  svg.replaceChildren()
+  const g = G()
+  svg.setAttribute('viewBox', `0 0 ${g.VW} ${g.VH}`)
+  const defs = el('defs', {})
+  const cp = el('clipPath', { id: 'poolclip' }, defs); el('path', { d: g.pool.d }, cp)
+  const rg = el('radialGradient', { id: 'poolg', cx: '50%', cy: '38%', r: '70%' }, defs); el('stop', { offset: '0', 'stop-color': '#154a78' }, rg); el('stop', { offset: '1', 'stop-color': '#0a2540' }, rg)
+  for (let i = 0; i < g.contours; i++) {
+    const y = 60 + i * g.cstep
+    el('path', { class: 'contour', d: portrait ? `M0 ${y} C 100 ${y - 20}, 200 ${y + 24}, 420 ${y - 10}` : `M0 ${y} C 300 ${y - 30}, 600 ${y + 30}, 1200 ${y - 10}` })
+  }
+  text(g.head.cx, g.head.ty, 'Headwaters', '', 'middle'); text(g.head.cx, g.head.ty + 16, 'the working tree', 'sm')
   L.tree = el('g', {})
-  // staging pool
-  el('path', { class: 'pool', d: 'M262 96 C 300 80, 380 80, 400 110 S 380 210, 330 206 S 250 180, 262 96 Z' })
-  L.poolLvl = el('path', { class: 'poollvl', d: '' })
-  text(330, 52, 'Staging pool', '', 'middle'); text(330, 68, 'the index', 'sm')
+  el('path', { class: 'pool', d: g.pool.d, style: 'fill:url(#poolg)' })
+  L.poolLvl = el('path', { class: 'poollvl', d: '', 'clip-path': 'url(#poolclip)' })
+  el('path', { class: 'poolrim', d: g.pool.d })
+  text(g.pool.cx, g.head.ty, 'Staging pool', '', 'middle'); text(g.pool.cx, g.head.ty + 16, 'the index', 'sm')
   L.poolList = el('g', {})
-  // channels + confluences drawn by renderGraph
-  text(700, 52, 'Channels', '', 'middle'); text(700, 68, 'branches, oldest to newest, left to right', 'sm')
-  L.graph = el('g', {})
-  L.refs = el('g', {})
-  // sediment record
-  text(700, 292, 'Sediment record', '', 'middle'); L.strataStat = text(700, 308, '', 'sm')
-  L.strata = el('g', {})
+  if (!portrait) { text(775, 52, 'Channels', '', 'middle'); text(775, 68, 'branches, oldest to newest, left to right; a channel per branch', 'sm') }
+  else { text(20, 262, 'Channels', '', 'start'); text(20, 278, 'branches, oldest at the top', 'sm', 'start') }
+  L.graph = el('g', {}); L.refs = el('g', {})
+  text(g.refs.x, portrait ? 640 : 52, 'Delta mouth', '', 'start'); text(g.refs.x, portrait ? 656 : 68, 'refs', 'sm', 'start')
 }
 function fileStatus(p) { const head = commitFiles(headSha()); const c = R.worktree.get(p), idx = R.index.get(p), h = head.get(p); if (idx && idx.content === c && (!h || h.content !== c)) return 'staged'; if ((idx && idx.content !== c) || (h && !idx && h.content !== c) || (!h && !idx)) return 'changed'; if (h && h.content === c) return 'in sync'; return 'changed' }
+let headPage = 0
 function renderTree() {
   L.tree.replaceChildren()
-  const paths = [...R.worktree.keys()].sort()
-  paths.slice(0, 5).forEach((p, i) => {
-    const y = 92 + i * 30
-    el('path', { class: 'chan thin', d: `M40 ${y} C 120 ${y}, 200 150, 262 150` }, L.tree)
+  const H = G().head
+  const order = { changed: 0, staged: 1, 'in sync': 2 }
+  const all = [...R.worktree.keys()]
+  const status = new Map(all.map((p) => [p, fileStatus(p)]))
+  const sorted = all.sort((a, b) => (order[status.get(a)] - order[status.get(b)]) || a.localeCompare(b))
+  const pages = Math.max(1, Math.ceil(sorted.length / H.rows)); headPage = Math.min(headPage, pages - 1)
+  const shown = sorted.slice(headPage * H.rows, headPage * H.rows + H.rows)
+  shown.forEach((p, i) => {
+    const y = H.ly + i * 26, st = status.get(p), ey = 110 + i * 16
+    el('path', { class: 'trib ' + (st === 'in sync' ? 'sync' : st), d: `M${H.railEnd} ${y} C ${H.railEnd + 30} ${y}, ${H.entryX - 34} ${ey}, ${H.entryX} ${ey}` }, L.tree)
     const g = el('g', { class: 'file' + (p === selected ? ' sel' : ''), tabindex: 0, role: 'button', 'aria-label': `open ${p}` }, L.tree)
-    el('rect', { x: 20, y: y - 14, width: 200, height: 26 }, g)
-    const t = text(44, y - 2, p.length > 16 ? p.slice(0, 15) + '…' : p, 'water', 'start', g)
-    if (conflictPaths.includes(p)) t.classList.add('rapids')
-    text(44, y + 11, fileStatus(p), 'sm', 'start', g)
+    el('rect', { x: H.lx, y: y - 13, width: H.railEnd - H.lx - 6, height: 26, rx: 4 }, g)
+    const nm = text(H.lx + 8, y + 4, p.length > 15 ? p.slice(0, 14) + '…' : p, 'water', 'start', g)
+    if (conflictPaths.includes(p)) nm.classList.add('rapids')
+    text(H.railEnd - 12, y + 4, st, 'sm', 'end', g).classList.add('st-' + st.replace(' ', ''))
     const open = () => { selected = p; $('editor').value = R.worktree.get(p); $('selName').textContent = p; renderTree() }
     g.addEventListener('click', open); g.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); open() } })
   })
+  if (pages > 1) {
+    const m = text(H.lx + 8, H.ly + H.rows * 26 + 2, `${sorted.length} files, page ${headPage + 1} of ${pages}. Next page`, 'sm', 'start', L.tree)
+    m.classList.add('more'); m.setAttribute('role', 'button'); m.setAttribute('tabindex', 0)
+    const next = () => { headPage = (headPage + 1) % pages; renderTree() }
+    m.addEventListener('click', next); m.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); next() } })
+  }
 }
 function renderPool() {
   const n = R.index.size, total = Math.max(R.worktree.size, 1), t = Math.min(1, n / total)
-  L.poolLvl.setAttribute('d', t ? `M262 ${206 - 110 * t} H400 V206 C 380 210, 330 206, 262 206 Z` : '')
-  L.poolLvl.setAttribute('clip-path', '')
+  const gg = G()
+  const top = 206 - 108 * t, x0 = gg.pool.x0
+  L.poolLvl.setAttribute('d', t ? `M${x0} ${top} q 25 -5 50 0 t 50 0 t 50 0 V 240 H ${x0} Z` : '')
   L.poolList.replaceChildren()
-  const staged = [...R.index.keys()].sort().slice(0, 5)
-  staged.forEach((p, i) => text(330, 108 + i * 17, p.length > 15 ? p.slice(0, 14) + '…' : p, 'water', 'middle', L.poolList))
-  if (!n) text(330, 150, 'empty', 'sm', 'middle', L.poolList)
+  const staged = [...R.index.keys()].sort(), shown = staged.slice(0, staged.length > 5 ? 4 : 5)
+  shown.forEach((p, i) => text(gg.pool.list.x, gg.pool.list.y + i * 17, p.length > 15 ? p.slice(0, 14) + '…' : p, 'water', 'middle', L.poolList))
+  if (staged.length > shown.length) text(gg.pool.list.x, gg.pool.list.y + shown.length * 17, `and ${staged.length - shown.length} more`, 'sm', 'middle', L.poolList)
+  if (!n) text(gg.pool.cx, gg.pool.cy, 'empty', 'sm', 'middle', L.poolList)
 }
 let inspected = null
-function renderStrata() {
-  L.strata.replaceChildren()
-  const objs = [...R.objects].slice(-32)
-  const COLS = 8, W = 66, H = 30, GX = 6, GY = 6, X0 = 700 - (COLS * W + (COLS - 1) * GX) / 2
-  objs.forEach(([sha, o], i) => {
-    const col = i % COLS, row = Math.floor(i / COLS)
-    const x = X0 + col * (W + GX), y = 318 + row * (H + GY)
-    const g = el('g', { class: `strata ${o.type}` + (!prevObjects.has(sha) ? ' fresh' : '') + (sha === inspected ? ' sel' : ''), tabindex: 0, role: 'button', 'aria-label': `${o.type} ${sha.slice(0, 7)}` }, L.strata)
-    el('rect', { x, y, width: W, height: H, rx: 15 }, g)
-    text(x + W / 2, y + 12, o.type, 'sm', 'middle', g)
-    text(x + W / 2, y + 24, sha.slice(0, 7), 'mono', 'middle', g)
-    const open = () => inspect(sha)
-    g.addEventListener('click', open); g.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); open() } })
-  })
-  L.strataStat.textContent = `${R.objects.size} objects, each a stratum tagged by its SHA-1`
+function renderRecords() {
+  const byRef = new Map(); for (const [name, sha] of R.refs) if (sha) byRef.set(sha, [...(byRef.get(sha) || []), name])
+  const live = reachable()
+  const lists = { commit: [], tree: [], blob: [] }
+  for (const [sha, o] of R.objects) lists[o.type].push([sha, o])
+  const hosts = { commit: $('recCommits'), tree: $('recTrees'), blob: $('recBlobs') }
+  const counts = { commit: $('nCommits'), tree: $('nTrees'), blob: $('nBlobs') }
+  for (const type of ['commit', 'tree', 'blob']) {
+    const host = hosts[type]; host.replaceChildren()
+    const frag = document.createDocumentFragment()
+    for (const [sha, o] of lists[type].reverse()) {
+      const b = document.createElement('button'); b.type = 'button'
+      b.className = 'ob' + (!prevObjects.has(sha) ? ' fresh' : '') + (sha === inspected ? ' sel' : '')
+      b.setAttribute('aria-label', `${o.type} ${sha.slice(0, 7)}`)
+      if (type === 'commit') {
+        const tags = [...(byRef.get(sha) || []).map((n) => n + (n === R.head ? ', HEAD' : '')), o.parents.length > 1 ? 'merge' : '', live.has(sha) ? '' : 'oxbow, unreachable'].filter(Boolean)
+        b.innerHTML = `<i>${esc(o.message)}</i><b>${sha.slice(0, 7)}${o.parents.length ? ', parent' + (o.parents.length > 1 ? 's ' : ' ') + o.parents.map((x) => x.slice(0, 7)).join(', ') : ', root'}</b>` + (tags.length ? `<span class="tag">${esc(tags.join(', '))}</span>` : '')
+      } else if (type === 'tree') b.innerHTML = `<b>${sha.slice(0, 7)}</b><span>${o.entries.length} entr${o.entries.length === 1 ? 'y' : 'ies'}</span>`
+      else b.innerHTML = `<i>${esc(R.names.get(sha) || 'blob')}</i><b>${sha.slice(0, 7)}, ${o.size} B</b>`
+      b.onclick = () => inspect(sha)
+      frag.appendChild(b)
+    }
+    host.appendChild(frag)
+    const n = lists[type].length
+    counts[type].textContent = n ? `${n}` : 'none yet'
+  }
 }
 function renderGraph() {
   L.graph.replaceChildren(); L.refs.replaceChildren()
-  const commits = [...R.objects].filter(([, o]) => o.type === 'commit').map(([s]) => s)   // insertion order = time
+  const all = [...R.objects].filter(([, o]) => o.type === 'commit').map(([s]) => s)   // insertion order = time
+  const gg = G(), ch = gg.chan
+  const commits = all.slice(-ch.K), hidden = all.length - commits.length
+  const live = reachable()
   const laneOf = new Map(), colOf = new Map(); let lanes = 0
-  const newestFirst = commits.slice().reverse()
-  newestFirst.forEach((s) => { if (!laneOf.has(s)) laneOf.set(s, lanes++ % 3); R.objects.get(s).parents.forEach((p, j) => { if (!laneOf.has(p)) laneOf.set(p, j === 0 ? laneOf.get(s) : (lanes++ % 3)) }) })
+  const newestFirst = all.slice().reverse()
+  newestFirst.forEach((s) => { if (!laneOf.has(s)) laneOf.set(s, lanes++ % ch.lanes); R.objects.get(s).parents.forEach((p, j) => { if (!laneOf.has(p)) laneOf.set(p, j === 0 ? laneOf.get(s) : (lanes++ % ch.lanes)) }) })
   commits.forEach((s, i) => colOf.set(s, i))
-  const X0 = 480, XW = 600 / Math.max(commits.length, 1), Y0 = 150, LH = 40
-  const xy = (s) => ({ x: X0 + colOf.get(s) * XW + XW / 2, y: Y0 + (laneOf.get(s) - 1) * LH })
-  // channels: from each parent to child
+  const step = ch.len / Math.max(commits.length, 1)
+  const xy = (s) => ch.vertical
+    ? { x: ch.x0 + laneOf.get(s) * ch.lane, y: ch.y0 + colOf.get(s) * step + step / 2 }
+    : { x: ch.x0 + colOf.get(s) * step + step / 2, y: ch.y0 + laneOf.get(s) * ch.lane }
   for (const s of commits) for (const p of R.objects.get(s).parents) {
-    if (!colOf.has(p)) continue
+    const dead = !live.has(s)
+    if (!colOf.has(p)) { const b = xy(s); el('path', { class: 'chan up' + (dead ? ' oxbow' : ''), d: ch.vertical ? `M${b.x} ${ch.y0 - 26} L${b.x} ${b.y}` : `M${ch.x0 - 26} ${b.y} L${b.x} ${b.y}` }, L.graph); continue }
     const a = xy(p), b = xy(s)
-    el('path', { class: 'chan', d: `M${a.x} ${a.y} C ${(a.x + b.x) / 2} ${a.y}, ${(a.x + b.x) / 2} ${b.y}, ${b.x} ${b.y}` }, L.graph)
+    el('path', { class: 'chan' + (dead ? ' oxbow' : ''), d: ch.vertical ? `M${a.x} ${a.y} C ${a.x} ${(a.y + b.y) / 2}, ${b.x} ${(a.y + b.y) / 2}, ${b.x} ${b.y}` : `M${a.x} ${a.y} C ${(a.x + b.x) / 2} ${a.y}, ${(a.x + b.x) / 2} ${b.y}, ${b.x} ${b.y}` }, L.graph)
   }
-  // the reach beyond HEAD to the delta mouth
   const h = headSha()
-  if (h) { const a = xy(h); el('path', { class: 'chan', d: `M${a.x} ${a.y} C ${a.x + 60} ${a.y}, 1060 ${a.y}, 1090 ${a.y}` }, L.graph) }
-  else el('path', { class: 'chan dead', d: 'M480 150 H1090' }, L.graph)
-  if (!commits.length) text(830, 140, 'no commits yet: the channel is dry', 'sm', 'middle', L.graph)
-  // confluences
+  if (h && colOf.has(h)) { const a = xy(h); el('path', { class: 'chan', d: ch.vertical ? `M${a.x} ${a.y} C ${a.x} ${a.y + 40}, ${ch.hx} ${ch.mouth - 40}, ${ch.hx} ${ch.mouth}` : `M${a.x} ${a.y} C ${a.x + 60} ${a.y}, ${ch.mouth - 30} ${a.y}, ${ch.mouth} ${a.y}` }, L.graph) }
+  else if (!h) el('path', { class: 'chan dead', d: ch.vertical ? `M${ch.hx} ${ch.y0} V${ch.mouth}` : `M${ch.x0} ${ch.y0} H${ch.mouth}` }, L.graph)
+  if (!commits.length) text(ch.vertical ? 210 : 775, ch.vertical ? ch.y0 + 150 : 200, 'no commits yet: the channels are dry', 'sm', 'middle', L.graph)
+  if (hidden) text(ch.vertical ? 232 : ch.x0 - 4, ch.vertical ? 278 : ch.y0 + ch.lanes * ch.lane + 4, `${hidden} earlier commit${hidden === 1 ? '' : 's'} upstream, not drawn; all of them are in the commits core below`, 'sm', 'start', L.graph)
   commits.forEach((s) => {
-    const c = R.objects.get(s), { x, y } = xy(s), isHead = s === h
+    const c = R.objects.get(s), { x, y } = xy(s), isHead = s === h, lane = laneOf.get(s), col = colOf.get(s), dead = !live.has(s)
     const g = el('g', { tabindex: 0, role: 'button', 'aria-label': `commit ${s.slice(0, 7)} ${c.message}` }, L.graph)
-    el('circle', { class: 'conf' + (isHead ? ' head' : '') + (s === inspected ? ' sel' : ''), cx: x, cy: y, r: isHead ? 9 : 7 }, g)
+    el('circle', { class: 'conf' + (isHead ? ' head' : '') + (s === inspected ? ' sel' : '') + (dead ? ' oxbow' : ''), cx: x, cy: y, r: isHead ? 9 : 7 }, g)
     if (conflictPaths.length && isHead) el('circle', { class: 'conf rapids', cx: x, cy: y, r: 13, fill: 'none', stroke: C.coral, 'stroke-width': 2 }, g)
-    const above = laneOf.get(s) !== 2
-    text(x, y + (above ? -16 : 26), `${s.slice(0, 7)}`, 'mono', 'middle', g)
-    text(x, y + (above ? -30 : 40), c.message.slice(0, 14), 'water', 'middle', g)
-    if (c.parents.length > 1) text(x, y + (above ? -44 : 54), 'two parents', 'sm', 'middle', g)
+    if (ch.vertical) {
+      const lx = ch.x0 + (ch.lanes - 1) * ch.lane + 24
+      text(lx, y - 3, c.message.slice(0, 18), 'water', 'start', g)
+      text(lx, y + 12, s.slice(0, 7), 'mono', 'start', g)
+      if (c.parents.length > 1) text(lx, y + 26, 'two parents', 'sm', 'start', g)
+    } else {
+      const above = col % 2 === 0
+      text(x, y + (above ? -14 : 24), s.slice(0, 7), 'mono', 'middle', g)
+      text(x, y + (above ? -27 : 37), c.message.slice(0, 14), 'water', 'middle', g)
+    }
     g.addEventListener('click', () => inspect(s)); g.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); inspect(s) } })
   })
-  // refs at the delta mouth
   const refs = [...R.refs]
-  refs.slice(0, 4).forEach(([name, sha], i) => {
-    const y = 110 + i * 24
-    el('path', { class: 'flag', d: `M1102 ${y - 8} v16 M1102 ${y - 8} h12 l-4 4 l4 4 h-12`, stroke: name === R.head ? C.ink : C.dim, fill: name === R.head ? C.gold : 'none', 'stroke-width': 1.5 }, L.refs)
-    text(1120, y + 4, `${name}${name === R.head ? ', HEAD' : ''}`, name === R.head ? '' : 'sm', 'start', L.refs)
-    text(1120, y + 16, sha ? sha.slice(0, 7) : 'unset', 'sm', 'start', L.refs)
+  refs.slice(0, gg.refs.max).forEach(([name, sha], i) => {
+    const x = ch.vertical ? gg.refs.x + (i % 2) * 190 : gg.refs.x, y = ch.vertical ? gg.refs.y + 20 + Math.floor(i / 2) * 30 : gg.refs.y + i * 26
+    el('path', { class: 'flag', d: `M${x} ${y - 8} v16 M${x} ${y - 8} h12 l-4 4 l4 4 h-12`, stroke: name === R.head ? C.ink : C.dim, fill: name === R.head ? C.gold : 'none', 'stroke-width': 1.5 }, L.refs)
+    text(x + 18, y + 4, `${name}${name === R.head ? ', HEAD' : ''}`, name === R.head ? '' : 'sm', 'start', L.refs)
+    text(x + 18, y + 16, sha ? sha.slice(0, 7) : 'unset', 'sm', 'start', L.refs)
   })
-  text(1102, 52, 'Delta mouth', '', 'start'); text(1102, 68, 'refs', 'sm', 'start')
+  if (refs.length > gg.refs.max) text(ch.vertical ? gg.refs.x : gg.refs.x + 18, ch.vertical ? gg.refs.y + 20 + Math.ceil(gg.refs.max / 2) * 30 : gg.refs.y + gg.refs.max * 26 + 4, `and ${refs.length - gg.refs.max} more`, 'sm', 'start', L.refs)
 }
 function inspect(sha) {
   const o = R.objects.get(sha); if (!o) return
   inspected = sha
   document.querySelectorAll('.strata, [role=button][aria-label^="commit"] .conf').forEach((g) => {})
-  renderStrata(); renderGraph()
+  renderRecords(); renderGraph()
   let body = ''
   if (o.type === 'blob') body = `<b>blob ${o.size}\\0</b>\n${esc(o.content)}`
   else if (o.type === 'tree') body = `<b>tree ${o.size}\\0</b>\n` + o.entries.map((e) => `${e.type === 'tree' ? '40000' : '100644'} ${e.name}\\0${e.sha}`).join('\n')
@@ -497,7 +621,7 @@ function inspect(sha) {
 function shellq(s) { return `'${s.replace(/'/g, `'\\''`)}'` }
 function esc(s) { return s.replace(/[&<>]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c])) }
 function renderAll() {
-  renderTree(); renderPool(); renderStrata(); renderGraph()
+  renderTree(); renderPool(); renderRecords(); renderGraph()
   if (selected && R.worktree.has(selected)) { $('editor').value = R.worktree.get(selected); $('selName').textContent = selected }
   $('headRef').textContent = 'HEAD ' + (R.refs.has(R.head) ? R.head : 'detached ' + R.head.slice(0, 7))
   const head = commitFiles(headSha())
@@ -510,14 +634,21 @@ function renderAll() {
 // ---------- flow overlay ----------
 const canvas = $('flow'), ctx = canvas.getContext('2d')
 let scale = 1, ox = 0, oy = 0
-function resize() { const r = $('frame').getBoundingClientRect(); canvas.width = Math.round(r.width * devicePixelRatio); canvas.height = Math.round(r.height * devicePixelRatio); scale = Math.min(r.width / 1200, r.height / 440); ox = (r.width - 1200 * scale) / 2; oy = (r.height - 440 * scale) / 2; ctx.setTransform(devicePixelRatio * scale, 0, 0, devicePixelRatio * scale, devicePixelRatio * ox, devicePixelRatio * oy) }
+function resize() {
+  const want = $('frame').getBoundingClientRect().width < 700
+  if (want !== portrait) { portrait = want; $('frame').classList.toggle('portrait', portrait); drawChart(); renderAll() }
+  const g = G(), r = $('frame').getBoundingClientRect()
+  canvas.width = Math.round(r.width * devicePixelRatio); canvas.height = Math.round(r.height * devicePixelRatio)
+  scale = Math.min(r.width / g.VW, r.height / g.VH); ox = (r.width - g.VW * scale) / 2; oy = (r.height - g.VH * scale) / 2
+  ctx.setTransform(devicePixelRatio * scale, 0, 0, devicePixelRatio * scale, devicePixelRatio * ox, devicePixelRatio * oy)
+}
 addEventListener('resize', resize)
 const flows = []
-function flow(from, to) { flows.push({ a: P[from], b: P[to], t: 0, d: 0.9 + Math.random() * 0.2, dy: (Math.random() - 0.5) * 24 }) }
+function flow(from, to) { const pp = P(); flows.push({ a: pp[from], b: pp[to], t: 0, d: 0.9 + Math.random() * 0.2, dy: (Math.random() - 0.5) * 24 }) }
 let last = performance.now()
 function loop(now) {
   const dt = Math.min((now - last) / 1000, 0.05); last = now
-  ctx.clearRect(-ox / scale, -oy / scale, 1200 + 2 * ox / scale, 440 + 2 * oy / scale)
+  const gv = G(); ctx.clearRect(-ox / scale, -oy / scale, gv.VW + 2 * ox / scale, gv.VH + 2 * oy / scale)
   for (let i = flows.length - 1; i >= 0; i--) {
     const f = flows[i]; f.t += dt / f.d
     if (f.t >= 1) { flows.splice(i, 1); continue }
@@ -539,13 +670,33 @@ async function importFiles(files) {
 $('uploadBtn').onclick = () => $('fileIn').click(); $('fileIn').addEventListener('change', () => importFiles($('fileIn').files))
 for (const ev of ['dragover', 'drop']) document.addEventListener(ev, (e) => e.preventDefault())
 document.addEventListener('drop', (e) => importFiles(e.dataTransfer?.files))
-for (const [label, c] of [['status', 'status'], ['add .', 'add .'], ["commit", "commit -m 'update'"], ['log', 'log'], ['branch exp', 'branch exp'], ['checkout exp', 'checkout exp'], ['checkout main', 'checkout main'], ['merge exp', 'merge exp']]) { const b = document.createElement('button'); b.type = 'button'; b.textContent = label; b.onclick = () => exec(c); $('pb').appendChild(b) }
-const SCRIPT = ['status', 'add .', "commit -m 'first flight'", () => { R.worktree.set('src/main.go', R.worktree.get('src/main.go').replace('hello', 'hello, sandbox')); selected = 'src/main.go' }, 'status', 'add .', "commit -m 'greet properly'", 'branch exp', 'checkout exp', () => { R.worktree.set('docs/notes.md', 'the experiment branch was here\n'); selected = 'docs/notes.md' }, 'add .', "commit -m 'experiment'", 'checkout main', () => { R.worktree.set('README.md', '# sandbox\nA repo that lives in your tab.\nmain moved on too.\n'); selected = 'README.md' }, 'add .', "commit -m 'main advances'", 'merge exp', 'log']
+for (const [label, c] of [['status', 'status'], ['add .', 'add .'], ["commit", "commit -m 'update'"], ['log', 'log'], ['branch exp', 'branch exp'], ['checkout exp', 'checkout exp'], ['checkout main', 'checkout main'], ['merge exp', 'merge exp'], ['rebase main', 'rebase main']]) { const b = document.createElement('button'); b.type = 'button'; b.textContent = label; b.onclick = () => exec(c); $('pb').appendChild(b) }
+const W = (p, v) => { R.worktree.set(p, v); selected = p }
+const SCRIPT = [
+  'add .', "commit -m 'first flight'",
+  'branch refs', 'checkout refs', () => W('src/refs.go', 'package refs\n\n// HEAD and branch refs\n'), 'add .', "commit -m 'refs and HEAD'",
+  () => W('src/refs.go', 'package refs\n\n// HEAD and branch refs\n// packed-refs support\n'), 'add .', "commit -m 'packed refs'",
+  'checkout main', 'branch router', 'checkout router', () => W('src/router.go', 'package router\n\n// route table\n'), 'add .', "commit -m 'route table'",
+  () => W('docs/design.md', '# design\nroutes are resolved first\n'), 'add .', "commit -m 'route docs'",
+  'checkout main', () => { W('cmd/ge/main.go', 'package main\n\nfunc main() { run() }\n'); R.worktree.set('Makefile', 'build:\n\tgo build ./...\ntest:\n\tgo test ./...\n') }, 'add .', "commit -m 'cli entry'",
+  'merge refs',
+  'branch merge3', 'checkout merge3', () => { W('src/merge.go', 'package merge\n\n// three-way merge with diff3 markers\n'); R.worktree.set('docs/merge.md', '# merge\nbase, ours, theirs\n'); R.worktree.set('README.md', '# GitEngine sandbox\nA repository that lives in your tab, with a three-way merge.\n') }, 'add .', "commit -m 'three-way merge'",
+  'checkout main', () => W('README.md', '# GitEngine sandbox\nA repository that lives in your tab, surveyed as a river.\n'), 'add .', "commit -m 'readme for the survey'",
+  'merge merge3',
+  () => W('README.md', '# GitEngine sandbox\nA repository that lives in your tab, surveyed as a river, with a three-way merge.\n'), 'add .', "commit -m 'resolve README, keep both'",
+  'checkout router', 'rebase main', 'checkout main', 'merge router',
+  'branch tests', 'checkout tests', () => W('tests/merge_test.go', 'package merge\n\nfunc TestConflict(t *T) {}\n'), 'add .', "commit -m 'merge tests'",
+  'checkout main', () => W('.gitignore', 'bin/\nbuild/\n'), 'add .', "commit -m 'ignore build output'",
+  'merge tests', 'log',
+  () => print('out', 'survey complete: five channels, one conflict resolved, one rebase with its oxbow, fifteen files. The river is yours now.'),
+]
 let step = 0, demoOn = true
-const demoTimer = setInterval(async () => { if (!demoOn || step >= SCRIPT.length) { if (step >= SCRIPT.length) clearInterval(demoTimer); return } const s = SCRIPT[step++]; if (typeof s === 'function') { s(); renderAll() } else await exec(s) }, 2300)
+const demoTimer = setInterval(async () => { if (!demoOn || step >= SCRIPT.length) { if (step >= SCRIPT.length) clearInterval(demoTimer); return } const s = SCRIPT[step++]; if (typeof s === 'function') { s(); renderAll() } else await exec(s) }, 900)
 for (const ev of ['pointerdown', 'keydown']) window.addEventListener(ev, () => { demoOn = false; clearInterval(demoTimer) }, { once: true, capture: true })
 print('out', 'GitEngine survey. A content-addressed repository in memory; hashes match native git.')
-print('out', 'Type commands, press the survey buttons, or watch: the demo braids and merges on its own until you touch anything.')
+print('out', 'Type commands, press the survey buttons, or watch: the survey braids five channels, hits a conflict, resolves it and rebases on its own until you touch anything.')
+portrait = $('frame').getBoundingClientRect().width < 700
+$('frame').classList.toggle('portrait', portrait)
 drawChart(); renderAll(); resize(); requestAnimationFrame(loop)
 </script>
 </body>

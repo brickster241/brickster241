@@ -5,31 +5,34 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>PulseHTTP, the request path as a transit line</title>
 <meta name="description" content="PulseHTTP's HTTP/1.1 request path drawn as a midnight metro board. Every train is a request through the real route table: router, bearer auth, token bucket, LRU+ETag cache, origin. Measured at 178,996 requests per second.">
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='12' fill='%23f1f3ea' stroke='%233a86ff' stroke-width='4'/%3E%3Crect x='4' y='13' width='24' height='6' fill='%233a86ff'/%3E%3C/svg%3E">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect x='10' y='2' width='12' height='28' rx='6' fill='%230e2448' stroke='%23f1f3ea' stroke-width='2'/%3E%3Ccircle cx='16' cy='10' r='4' fill='%232dc653'/%3E%3Ccircle cx='16' cy='22' r='4' fill='%23ffb703'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Overpass:wght@400;600;800&family=Overpass+Mono:wght@400;600&display=swap" rel="stylesheet">
 <style>
   :root {
     --enamel: #0b1d3a; --enamel2: #0e2448; --steel: #33415c; --steel2: #223150;
-    --cream: #f1f3ea; --dim: #b9c1cf; --faint: #7d889c;
+    --cream: #f1f3ea; --dim: #b9c1cf; --faint: #8d99ad;
     --cobalt: #3a86ff; --scarlet: #e63946; --amber: #ffb703; --green: #2dc653; --sky: #8ecae6;
     --sans: 'Overpass', 'Helvetica Neue', Arial, sans-serif;
     --mono: 'Overpass Mono', ui-monospace, Menlo, monospace;
   }
   * { box-sizing: border-box; margin: 0; }
   html { color-scheme: dark; background: var(--enamel); scroll-behavior: smooth; }
-  body { background: var(--enamel); color: var(--cream); font-family: var(--sans); font-size: 16px; line-height: 1.55; -webkit-font-smoothing: antialiased; }
+  body { background: var(--enamel); color: var(--cream); font-family: var(--sans); font-size: 16px; line-height: 1.55; -webkit-font-smoothing: antialiased; overflow-x: hidden; }
   ::selection { background: var(--cobalt); color: var(--cream); }
   :focus-visible { outline: 2px solid var(--amber); outline-offset: 3px; }
   a { color: var(--sky); text-decoration: none; border-bottom: 1px solid rgba(142,202,230,.4); }
   a:hover { border-color: var(--sky); }
   * { scrollbar-color: var(--steel) var(--enamel2); scrollbar-width: thin; }
 
+  /* board header: name plate left, service board right */
   header { display: grid; grid-template-columns: 1fr auto; gap: 24px; align-items: end; padding: 26px clamp(18px, 4vw, 48px) 18px; border-bottom: 2px solid var(--steel); }
   .name { display: flex; align-items: center; gap: 14px; }
-  .roundel { width: 40px; height: 40px; border-radius: 50%; background: var(--cream); border: 6px solid var(--cobalt); position: relative; flex: none; }
-  .roundel::after { content: ''; position: absolute; left: -12px; right: -12px; top: 50%; height: 8px; transform: translateY(-50%); background: var(--cobalt); }
+  .signal { width: 22px; height: 46px; border-radius: 11px; background: var(--enamel2); border: 2px solid var(--cream); position: relative; flex: none; }
+  .signal::before, .signal::after { content: ''; position: absolute; left: 4px; width: 10px; height: 10px; border-radius: 50%; }
+  .signal::before { top: 6px; background: var(--green); }
+  .signal::after { bottom: 6px; background: var(--amber); }
   h1 { font-size: clamp(26px, 3.4vw, 36px); font-weight: 800; letter-spacing: -.01em; line-height: 1; }
   .sub { color: var(--dim); margin-top: 6px; font-size: 15px; max-width: 70ch; }
   .service { min-width: 300px; border: 2px solid var(--steel); border-radius: 8px; overflow: hidden; }
@@ -39,8 +42,10 @@
   .service.warn .lamp { background: var(--amber); }
   .service.warn .s { color: var(--amber); }
 
-  .board { padding: 8px clamp(10px, 2vw, 24px) 0; overflow-x: auto; }
-  .frame { position: relative; width: 100%; min-width: 960px; aspect-ratio: 1200 / 560; max-height: 78dvh; margin: 0 auto; }
+  /* the line diagram; portrait on narrow screens, landscape otherwise */
+  .board { padding: 8px clamp(10px, 2vw, 24px) 0; }
+  .frame { position: relative; width: 100%; aspect-ratio: 1200 / 560; max-height: 78dvh; margin: 0 auto; }
+  .frame.portrait { aspect-ratio: 420 / 980; max-height: none; }
   .frame svg, .frame canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
   .frame canvas { pointer-events: none; }
   svg text { font-family: var(--sans); font-size: 13px; font-weight: 600; fill: var(--cream); }
@@ -50,9 +55,8 @@
   .line.req { stroke: var(--cobalt); }
   .line.ret { stroke: var(--scarlet); }
   .line.loop { stroke: var(--green); stroke-width: 6; }
-  .line.stub { stroke: var(--faint); stroke-width: 4; stroke-dasharray: 2 8; }
+  .line.stub { fill: none; stroke-width: 4; stroke-dasharray: 2 8; }
   .stn { fill: var(--cream); stroke: var(--cobalt); stroke-width: 4; }
-  .stn.inter { stroke-width: 5; }
   .stn.noentry { fill: var(--scarlet); stroke: var(--cream); }
   .stn.depot { fill: var(--enamel2); stroke: var(--cream); stroke-width: 3; }
   .blockbox { fill: rgba(255,183,3,.08); stroke: var(--amber); stroke-width: 2; stroke-dasharray: 6 5; }
@@ -66,8 +70,9 @@
   .lever:hover .knob, .lever:focus-visible .knob { fill: var(--amber); }
   .lever .plate { fill: var(--steel2); stroke: var(--steel); stroke-width: 1.5; }
 
+  /* bells, departures board, line key */
   .deck { display: grid; grid-template-columns: auto 1fr; border-top: 2px solid var(--steel); border-bottom: 2px solid var(--steel); }
-  .bells { display: flex; gap: 20px; padding: 14px clamp(18px, 4vw, 48px); border-right: 2px solid var(--steel); align-items: center; }
+  .bells { display: flex; flex-wrap: wrap; gap: 12px 20px; padding: 14px clamp(18px, 4vw, 48px); border-right: 2px solid var(--steel); align-items: center; }
   .bells button { background: var(--enamel2); border: 2px solid var(--steel); color: var(--cream); border-radius: 999px; padding: 10px 18px 8px; font: 600 14px var(--sans); cursor: pointer; display: flex; align-items: center; gap: 10px; }
   .bells button i { width: 12px; height: 12px; border-radius: 50%; background: var(--faint); display: inline-block; }
   .bells button:hover { border-color: var(--cream); }
@@ -75,36 +80,48 @@
   .bells button.on { border-color: var(--amber); color: var(--amber); }
   .bells button.on i { background: var(--amber); }
   .dep { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); }
-  .dep div { padding: 12px 16px 10px; border-right: 2px solid var(--steel); }
+  .dep div { padding: 12px 16px 10px; border-right: 2px solid var(--steel); min-width: 0; }
   .dep div:last-child { border-right: 0; }
-  .dep .k { font-size: 12.5px; color: var(--dim); font-weight: 600; white-space: nowrap; }
+  .dep .k { font-size: 12.5px; color: var(--dim); font-weight: 600; }
   .dep .v { font: 600 24px var(--mono); color: var(--amber); font-variant-numeric: tabular-nums; margin-top: 2px; }
   .dep .v.quiet { color: var(--cream); }
+  .key { display: flex; flex-wrap: wrap; gap: 8px 22px; padding: 10px clamp(18px, 4vw, 48px); border-bottom: 2px solid var(--steel); font-size: 13.5px; color: var(--dim); }
+  .key span { display: inline-flex; align-items: center; gap: 8px; }
+  .key i { display: inline-block; width: 22px; height: 6px; border-radius: 3px; }
+  .key i.dot { width: 12px; height: 12px; border-radius: 50%; }
 
-  main { max-width: 1120px; margin: 0 auto; padding: 40px clamp(18px, 4vw, 48px) 80px; display: grid; grid-template-columns: minmax(0, 1fr) 320px; gap: 48px; }
-  section { margin-bottom: 44px; }
-  h2 { font-size: 22px; font-weight: 800; margin-bottom: 12px; display: flex; align-items: center; gap: 12px; }
-  h2::before { content: ''; width: 16px; height: 16px; border-radius: 50%; border: 4px solid var(--cobalt); background: var(--cream); flex: none; }
+  /* the route card: the account of the line, read as one vertical route */
+  main { max-width: 900px; margin: 0 auto; padding: 44px clamp(18px, 4vw, 48px) 72px; }
+  .route { position: relative; padding-left: 52px; }
+  .route::before { content: ''; position: absolute; left: 15px; top: 8px; bottom: 8px; width: 8px; border-radius: 4px; background: var(--cobalt); }
+  .stop { position: relative; margin-bottom: 40px; }
+  .stop::before { content: ''; position: absolute; left: -46px; top: 2px; width: 16px; height: 16px; border-radius: 50%; background: var(--cream); border: 4px solid var(--cobalt); }
+  .stop.last::before { border-color: var(--scarlet); }
+  h2 { font-size: 22px; font-weight: 800; margin-bottom: 12px; line-height: 1.1; }
   p { color: var(--dim); max-width: 68ch; margin-bottom: 12px; }
   p b, li b { color: var(--cream); font-weight: 600; }
-  ol, ul { color: var(--dim); padding-left: 22px; max-width: 68ch; }
+  ol.stations { list-style: none; padding: 0; max-width: 68ch; }
+  ol.stations li { position: relative; padding-left: 26px; margin-bottom: 12px; color: var(--dim); }
+  ol.stations li::before { content: ''; position: absolute; left: 0; top: 7px; width: 10px; height: 10px; border-radius: 50%; background: var(--cream); border: 3px solid var(--cobalt); }
+  ul { color: var(--dim); padding-left: 22px; max-width: 68ch; }
   li { margin-bottom: 10px; }
-  li::marker { color: var(--cobalt); font-weight: 800; }
   code { font-family: var(--mono); font-size: .92em; color: var(--cream); background: var(--enamel2); padding: 1px 6px; border-radius: 4px; }
-  table { border-collapse: collapse; width: 100%; max-width: 640px; font-size: 15px; margin: 8px 0 16px; }
-  th, td { text-align: left; padding: 9px 12px; border-bottom: 1px solid var(--steel); }
-  th { color: var(--dim); font-weight: 600; font-size: 13px; }
-  td.n { font-family: var(--mono); color: var(--amber); font-weight: 600; white-space: nowrap; }
-  aside .rail { position: sticky; top: 24px; border: 2px solid var(--steel); border-radius: 10px; overflow: hidden; }
-  aside .rail .t { background: var(--steel2); padding: 8px 14px; font-size: 13px; font-weight: 600; color: var(--dim); }
-  aside .rail ul { list-style: none; padding: 8px 0; }
-  aside .rail li { margin: 0; padding: 7px 14px; display: flex; gap: 12px; align-items: baseline; }
-  aside .rail li .c { width: 12px; height: 12px; border-radius: 50%; flex: none; align-self: center; }
-  aside .rail li span:last-child { color: var(--dim); font-size: 14px; }
-  aside .rail li b { color: var(--cream); font-family: var(--mono); font-size: 13px; }
-  footer { border-top: 2px solid var(--steel); padding: 18px clamp(18px, 4vw, 48px); color: var(--faint); font-size: 13.5px; display: flex; flex-wrap: wrap; gap: 8px 24px; }
+  table.routes { border-collapse: collapse; width: 100%; max-width: 640px; font-size: 15px; margin: 8px 0 16px; }
+  table.routes th, table.routes td { text-align: left; padding: 8px 12px; border-bottom: 1px solid var(--steel); }
+  table.routes th { color: var(--dim); font-weight: 600; font-size: 13px; }
+  table.routes td.n { font-family: var(--mono); color: var(--amber); }
+  /* the timetable: measured numbers as a departures board */
+  .timetable { border: 2px solid var(--steel); border-radius: 8px; overflow: hidden; margin: 12px 0 16px; max-width: 720px; }
+  .timetable .hd { display: grid; grid-template-columns: 1fr 150px 1.3fr; background: var(--steel2); color: var(--dim); font-size: 12.5px; font-weight: 600; padding: 7px 14px; gap: 12px; }
+  .timetable .row { display: grid; grid-template-columns: 1fr 150px 1.3fr; gap: 12px; padding: 10px 14px; border-top: 1px solid var(--steel); align-items: baseline; font-size: 15px; color: var(--dim); }
+  .timetable .row b { font: 600 15px var(--mono); color: var(--amber); }
+  .timetable .row span:first-child { color: var(--cream); }
+  footer { border-top: 2px solid var(--steel); padding: 18px clamp(18px, 4vw, 48px); color: var(--faint); font-size: 13.5px; display: flex; flex-wrap: wrap; gap: 8px 24px; align-items: center; }
+  footer .signal { width: 14px; height: 30px; border-radius: 7px; border-width: 1.5px; }
+  footer .signal::before, footer .signal::after { left: 2.5px; width: 7px; height: 7px; }
+  footer .signal::before { top: 4px; } footer .signal::after { bottom: 4px; }
 
-  @media (max-width: 900px) {
+  @media (max-width: 760px) {
     header { grid-template-columns: 1fr; align-items: start; }
     .service { min-width: 0; }
     .deck { grid-template-columns: 1fr; }
@@ -112,8 +129,8 @@
     .dep { grid-template-columns: repeat(3, minmax(0, 1fr)); }
     .dep div:nth-child(3) { border-right: 0; }
     .dep div:nth-child(n+4) { border-top: 2px solid var(--steel); }
-    main { grid-template-columns: 1fr; gap: 24px; }
-    aside .rail { position: static; }
+    .timetable .hd, .timetable .row { grid-template-columns: 1fr 110px; }
+    .timetable .hd span:last-child, .timetable .row span:last-child { grid-column: 1 / -1; font-size: 13px; }
   }
   @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
 </style>
@@ -122,7 +139,7 @@
 
 <header>
   <div>
-    <div class="name"><span class="roundel" aria-hidden="true"></span><h1>PulseHTTP</h1></div>
+    <div class="name"><span class="signal" aria-hidden="true"></span><h1>PulseHTTP</h1></div>
     <div class="sub">The request path of an HTTP/1.1 server, drawn as a transit line. Every train is a request through the real route table.</div>
   </div>
   <div class="service" id="service" role="status" aria-live="polite">
@@ -145,14 +162,23 @@
   </div>
   <div class="dep" id="tallies"></div>
 </div>
+<div class="key">
+  <span><i style="background:var(--cobalt)"></i>request line, outbound</span>
+  <span><i style="background:var(--scarlet)"></i>response line, returning</span>
+  <span><i style="background:var(--green)"></i>cache loop, a short turn</span>
+  <span><i class="dot" style="background:var(--cream)"></i>train in flight</span>
+  <span><i class="dot" style="background:var(--amber)"></i>held at the block, 429</span>
+  <span><i class="dot" style="background:var(--scarlet);outline:2px solid var(--cream)"></i>no entry, 401 or 403</span>
+  <span>levers: drag, or arrow keys</span>
+</div>
 
 <main>
-  <div>
-    <section id="what">
+  <div class="route">
+    <section class="stop">
       <h2>What you are looking at</h2>
       <p><b>PulseHTTP</b> is an HTTP/1.1 server and reverse-proxy load balancer written in Go on raw TCP, with no dependencies. This board is a faithful anatomy of one path through it. A train leaves the source, is routed, shows a bearer token at the barrier, waits for a token at the signal block, checks the cache loop, and only then reaches the origin handler. The response comes back along the scarlet line.</p>
       <p>The route table is the server's own. Four paths, two of them protected:</p>
-      <table>
+      <table class="routes">
         <thead><tr><th>Path</th><th>Who may pass</th><th>Otherwise</th></tr></thead>
         <tbody>
           <tr><td><code>/api/users/42</code></td><td>anyone</td><td></td></tr>
@@ -163,9 +189,9 @@
       </table>
     </section>
 
-    <section id="stations">
+    <section class="stop">
       <h2>Station by station</h2>
-      <ol>
+      <ol class="stations">
         <li><b>Source.</b> Trains depart at the rate on the first lever. A surge sends sixteen at once, and every eleven seconds a burst of ten arrives on its own, so the signal block is seen holding traffic without anyone touching a thing.</li>
         <li><b>Router.</b> An interchange with four platforms, one per path in the table above. The path decides which rules apply downstream.</li>
         <li><b>Auth barrier.</b> The server separates two refusals that most stacks blur. No token on a protected path is <b>401</b>: authenticate first. A valid token without the right role is <b>403</b>: you are known, and still refused. Both leave the line at the red no-entry stop.</li>
@@ -175,7 +201,7 @@
       </ol>
     </section>
 
-    <section id="try">
+    <section class="stop">
       <h2>Try this</h2>
       <ul>
         <li>Pull <b>Rate</b> above <b>Refill</b> and watch the lamps go out. The 429 count climbs, the siding fills, and the service board turns amber. Pull it back down and the block clears at exactly the refill rate.</li>
@@ -184,42 +210,25 @@
       </ul>
     </section>
 
-    <section id="measured">
-      <h2>Measured, not simulated</h2>
-      <p>The board above is an animation of the real rules. The numbers below are not: they come from the repository's own load harness, <code>pulsebench</code>, run against the real server on one machine, and they are reproduced in the repository's README with the exact commands.</p>
-      <table>
-        <tbody>
-          <tr><td>Throughput on a cached route</td><td class="n">178,996 req/s</td><td>p99 2.2 ms, 200,000 requests, 0 errors</td></tr>
-          <tr><td>Cache lift on a CPU-bound route</td><td class="n">19.5 times</td><td>8.2K to 160K req/s with LRU+ETag</td></tr>
-          <tr><td>Reverse-proxy balancer</td><td class="n">78,341 req/s</td><td>2.7 times over one connection per request</td></tr>
-          <tr><td>Rate limiter blast test</td><td class="n">202 / 1,798</td><td>allowed / refused with 429 and Retry-After</td></tr>
-          <tr><td>Conformance suite</td><td class="n">39 tests</td><td>raw TCP, one status code per client failure</td></tr>
-        </tbody>
-      </table>
-      <p>To check any of them: clone the repository, run <code>go test ./...</code>, then run the harness the README describes. Your numbers will differ with your hardware; the ratios should not.</p>
+    <section class="stop last">
+      <h2>Timetable: measured, not simulated</h2>
+      <p>The board above is an animation of the real rules. The numbers below are not: they come from the repository's own load harness, <code>pulsebench</code>, run against the real server on one machine, and the README reproduces them with the exact commands.</p>
+      <div class="timetable">
+        <div class="hd"><span>Service</span><span>Reading</span><span>Notes</span></div>
+        <div class="row"><span>Throughput on a cached route</span><b>178,996 req/s</b><span>p99 2.2 ms, 200,000 requests, 0 errors</span></div>
+        <div class="row"><span>Cache lift on a CPU-bound route</span><b>19.5 times</b><span>8.2K to 160K req/s with LRU+ETag</span></div>
+        <div class="row"><span>Reverse-proxy balancer</span><b>78,341 req/s</b><span>2.7 times over one connection per request</span></div>
+        <div class="row"><span>Rate limiter blast test</span><b>202 / 1,798</b><span>allowed / refused with 429 and Retry-After</span></div>
+        <div class="row"><span>Conformance suite</span><b>39 tests</b><span>raw TCP, one status code per client failure</span></div>
+      </div>
+      <p>To check any of them: clone <a href="https://github.com/brickster241/PulseHTTP" target="_blank" rel="noreferrer">the repository</a>, run <code>go test ./...</code>, then run the harness the README describes. Your numbers will differ with your hardware; the ratios should not.</p>
     </section>
   </div>
-
-  <aside>
-    <div class="rail">
-      <div class="t">Reading the board</div>
-      <ul>
-        <li><span class="c" style="background:var(--cobalt)"></span><span>Request line, outbound</span></li>
-        <li><span class="c" style="background:var(--scarlet)"></span><span>Response line, returning</span></li>
-        <li><span class="c" style="background:var(--green)"></span><span>Cache loop, a short turn</span></li>
-        <li><span class="c" style="background:var(--cream)"></span><span>A train still in flight</span></li>
-        <li><span class="c" style="background:var(--amber)"></span><span>Held at the block, 429</span></li>
-        <li><span class="c" style="background:var(--scarlet);border:2px solid var(--cream)"></span><span>No entry, 401 or 403</span></li>
-        <li><b>Levers</b><span>drag, or use arrow keys</span></li>
-        <li><b>Source</b><span><a href="https://github.com/brickster241/PulseHTTP" target="_blank" rel="noreferrer">github.com/brickster241/PulseHTTP</a></span></li>
-      </ul>
-    </div>
-  </aside>
 </main>
 
 <footer>
-  <span>PulseHTTP by Ashish Verma.</span>
-  <span>The stack is measured, not claimed: 178,996 req/s at p99 2.2 ms by its own harness.</span>
+  <span class="signal" aria-hidden="true"></span>
+  <span>PulseHTTP by Ashish Verma. Last reading: 178,996 req/s at p99 2.2 ms, by its own harness.</span>
 </footer>
 
 <script type="module">
@@ -239,10 +248,17 @@ let tokens = cfg.cap, paused = false, starved = 0, starveAt = -1e9
 const tallies = { '200 origin': 0, '200 cache': 0, '304': 0, '401': 0, '403': 0, '429': 0 }
 const cache = [], reqs = []
 
-const Y_REQ = 262, Y_RET = 118, Y_NO = 352
-const X = { source: 90, router: 300, auth: 490, bucket: 690, cache: 900, origin: 1110 }
-const stageX = [X.source, X.router, X.auth, X.bucket, X.cache, X.origin]
+// The simulation lives on an abstract line: stage positions along it, plus a
+// return lane and a drop lane. The board maps those to screen in either
+// orientation, so one model drives the landscape and the portrait diagrams.
 const ST = ['source', 'router', 'auth', 'bucket', 'cache', 'origin']
+const ALONG = [0, 0.206, 0.392, 0.588, 0.794, 1]
+const L_REQ = 0, L_RET = 1, L_DROP = 2
+let portrait = false
+// landscape geometry
+const LS = { x0: 90, x1: 1110, yReq: 262, yRet: 118, yNo: 352 }
+// portrait geometry
+const PT = { y0: 70, y1: 690, xReq: 120, xRet: 60, xNo: 250 }
 
 let urlSeq = 100
 function spawn() {
@@ -252,77 +268,100 @@ function spawn() {
   const hot = Math.random() < cfg.repeat
   const url = hot ? route.p : route.p + '?v=' + urlSeq++
   const hasEtag = hot && Math.random() < 0.5
-  reqs.push({ url, need: route.need, role, hasEtag, stage: 0, x: X.source, y: Y_REQ, phase: 'fwd', status: null, dropT: 0, waitUntil: 0, dwell: 0, loopT: 0 })
+  reqs.push({ url, need: route.need, role, hasEtag, stage: 0, a: 0, lane: L_REQ, cross: 0, phase: 'fwd', status: null, dropT: 0, waitUntil: 0, dwell: 0, loopT: 0 })
 }
 function decide(r, stageId) {
-  if (stageId === 'auth') {
-    if (r.need && !r.role) return '401'
-    if (r.need === 'admin' && r.role !== 'admin') return '403'
-    return null
-  }
+  if (stageId === 'auth') { if (r.need && !r.role) return '401'; if (r.need === 'admin' && r.role !== 'admin') return '403'; return null }
   if (stageId === 'bucket') { if (tokens >= 1) { tokens -= 1; return null } starved++; starveAt = performance.now(); return '429' }
-  if (stageId === 'cache') {
-    const i = cache.findIndex((c) => c.url === r.url)
-    if (i >= 0) { const e = cache.splice(i, 1)[0]; cache.unshift(e); renderCache(); return r.hasEtag ? '304' : '200 cache' }
-    return null
-  }
+  if (stageId === 'cache') { const i = cache.findIndex((c) => c.url === r.url); if (i >= 0) { const e = cache.splice(i, 1)[0]; cache.unshift(e); renderCache(); return r.hasEtag ? '304' : '200 cache' } return null }
   if (stageId === 'origin') { r.waitUntil = performance.now() + 260; return 'origin-work' }
   return null
 }
 function completeOrigin(r) {
-  if (!cache.some((c) => c.url === r.url)) {
-    cache.unshift({ url: r.url, etag: 'W/"' + Math.random().toString(16).slice(2, 8) + '"' })
-    if (cache.length > cfg.slots) cache.pop()
-    renderCache()
-  }
+  if (!cache.some((c) => c.url === r.url)) { cache.unshift({ url: r.url, etag: 'W/"' + Math.random().toString(16).slice(2, 8) + '"' }); if (cache.length > cfg.slots) cache.pop(); renderCache() }
   return '200 origin'
 }
 
+// ---------- board drawing ----------
 const svg = $('board')
 function el(name, attrs = {}, parent = svg) { const n = document.createElementNS(NS, name); for (const [k, v] of Object.entries(attrs)) n.setAttribute(k, v); parent.appendChild(n); return n }
 function text(x, y, s, cls = '', anchor = 'middle', parent = svg) { const t = el('text', { x, y, 'text-anchor': anchor, class: cls }, parent); t.textContent = s; return t }
 const parts = {}
-function drawBoard() {
-  el('path', { class: 'line req', d: `M${X.source} ${Y_REQ} H${X.origin - 40}` })
-  el('path', { class: 'line ret', d: `M${X.origin} ${Y_REQ - 30} V${Y_RET + 30} Q${X.origin} ${Y_RET} ${X.origin - 30} ${Y_RET} H${X.source + 30} Q${X.source} ${Y_RET} ${X.source} ${Y_RET + 30} V${Y_REQ - 30}` })
-  text(X.source + 44, Y_RET - 18, 'Response line', 'sm', 'start')
-  text(X.source + 44, Y_REQ + 30, 'Request line', 'sm', 'start')
-  el('path', { class: 'line loop', d: `M${X.cache} ${Y_REQ} C ${X.cache + 90} ${Y_REQ - 10}, ${X.cache + 90} ${Y_RET + 10}, ${X.cache} ${Y_RET}` })
-  text(X.cache + 100, (Y_REQ + Y_RET) / 2 + 4, 'Cache loop', 'sm', 'start')
-  const stn = (x, y, label, sub, opts = {}) => {
-    el('circle', { class: 'stn' + (opts.cls ? ' ' + opts.cls : ''), cx: x, cy: y, r: opts.r ?? 13 })
-    if (opts.inter) el('circle', { cx: x, cy: y, r: 5, fill: '#0b1d3a' })
-    text(x, y + (opts.below ? 36 : -24), label)
-    if (sub) text(x, y + (opts.below ? 52 : -40), sub, 'sm')
+// screen position of a point on the abstract line: a in [0,1] along, lane, and a cross offset (0..1) for lane changes
+function screen(a, lane, cross = 0) {
+  if (!portrait) {
+    const x = LS.x0 + a * (LS.x1 - LS.x0)
+    if (lane === L_REQ) return { x, y: LS.yReq }
+    if (lane === L_RET) return { x, y: LS.yRet }
+    return { x: x - 70 * cross, y: LS.yReq + (LS.yNo - 26 - LS.yReq) * cross }
   }
-  stn(X.source, Y_REQ, 'Source', 'clients depart here', { r: 16 })
-  stn(X.router, Y_REQ, 'Router', 'four platforms', { inter: true, cls: 'inter', r: 15 })
-  PATHS.forEach((p, i) => text(X.router - 62, Y_REQ + 34 + i * 14, p.p, 'sm', 'start'))
-  stn(X.auth, Y_REQ, 'Auth barrier', 'bearer token')
-  el('path', { class: 'line stub', d: `M${X.auth} ${Y_REQ + 13} V${Y_NO - 14}`, style: 'stroke:#e63946;stroke-dasharray:none;stroke-width:5' })
-  el('circle', { class: 'stn noentry', cx: X.auth, cy: Y_NO, r: 13 })
-  el('rect', { x: X.auth - 8, y: Y_NO - 2, width: 16, height: 4, fill: C.cream })
-  text(X.auth, Y_NO + 30, 'No entry', '')
-  text(X.auth, Y_NO + 46, '401 no token, 403 wrong role', 'sm')
-  parts.block = el('rect', { class: 'blockbox', x: X.bucket - 70, y: Y_REQ - 70, width: 140, height: 100, rx: 8 })
-  stn(X.bucket, Y_REQ, '', null)
-  text(X.bucket, Y_REQ - 82, 'Limiter', '')
-  text(X.bucket, Y_REQ - 98, 'token bucket as a signal block', 'sm')
+  const y = PT.y0 + a * (PT.y1 - PT.y0)
+  if (lane === L_REQ) return { x: PT.xReq, y }
+  if (lane === L_RET) return { x: PT.xRet, y }
+  return { x: PT.xReq + (PT.xNo - PT.xReq) * cross, y: y + 44 * cross }
+}
+const stationPos = (i, lane = L_REQ) => screen(ALONG[i], lane)
+
+function drawBoard() {
+  svg.replaceChildren()
+  const S = ST.map((_, i) => stationPos(i))
+  const R = ST.map((_, i) => stationPos(i, L_RET))
+  if (!portrait) {
+    el('path', { class: 'line req', d: `M${S[0].x} ${S[0].y} H${S[5].x - 40}` })
+    el('path', { class: 'line ret', d: `M${S[5].x} ${S[5].y - 30} V${R[5].y + 30} Q${S[5].x} ${R[5].y} ${S[5].x - 30} ${R[5].y} H${R[0].x + 30} Q${R[0].x} ${R[0].y} ${R[0].x} ${R[0].y + 30} V${S[0].y - 30}` })
+    text(S[0].x + 44, R[0].y - 18, 'Response line', 'sm', 'start'); text(S[0].x + 44, S[0].y + 30, 'Request line', 'sm', 'start')
+    el('path', { class: 'line loop', d: `M${S[4].x} ${S[4].y} C ${S[4].x + 90} ${S[4].y - 10}, ${S[4].x + 90} ${R[4].y + 10}, ${S[4].x} ${R[4].y}` })
+    text(S[4].x + 100, (S[4].y + R[4].y) / 2 + 4, 'Cache loop', 'sm', 'start')
+  } else {
+    el('path', { class: 'line req', d: `M${S[0].x} ${S[0].y} V${S[5].y - 30}` })
+    el('path', { class: 'line ret', d: `M${S[5].x - 24} ${S[5].y} H${R[5].x + 20} Q${R[5].x} ${S[5].y} ${R[5].x} ${S[5].y - 20} V${R[0].y + 20} Q${R[0].x} ${R[0].y} ${R[0].x + 20} ${R[0].y} H${S[0].x - 24}` })
+    text(R[0].x - 6, R[0].y - 16, 'Response', 'sm', 'start'); text(S[0].x + 20, S[0].y - 16, 'Request line', 'sm', 'start')
+    el('path', { class: 'line loop', d: `M${S[4].x} ${S[4].y} C ${S[4].x - 48} ${S[4].y + 6}, ${S[4].x - 48} ${R[4].y + 34}, ${R[4].x} ${R[4].y + 40}` })
+  }
+  // stations: name beneath the disc in landscape, beside it in portrait; descriptors always under the name
+  const stn = (i, label, sub, r = 13) => {
+    const p = S[i]
+    el('circle', { class: 'stn', cx: p.x, cy: p.y, r })
+    if (!portrait) { text(p.x, p.y + 34, label); if (sub) text(p.x, p.y + 50, sub, 'sm') }
+    else { text(p.x + 30, p.y + 4, label, '', 'start'); if (sub) text(p.x + 30, p.y + 20, sub, 'sm', 'start') }
+  }
+  stn(0, 'Source', 'clients depart here', 16)
+  stn(1, 'Router', 'four platforms', 15)
+  stn(2, 'Auth barrier', 'bearer token')
+  stn(3, 'Limiter', 'token bucket as a signal block')
+  stn(4, 'Cache', 'LRU with ETags', 15)
+  // router platforms
+  PATHS.forEach((p, i) => { const q = S[1]; portrait ? text(q.x + 30, q.y + 36 + i * 13, p.p, 'sm', 'start') : text(q.x - 62, q.y + 66 + i * 13, p.p, 'sm', 'start') })
+  // no-entry stop off the auth barrier
+  const no = screen(ALONG[2], L_DROP, 1)
+  const a2 = S[2]
+  el('path', { class: 'line stub', d: portrait ? `M${a2.x} ${a2.y + 13} V${no.y} H${no.x - 14}` : `M${a2.x - 9} ${a2.y + 9} L${no.x + 9} ${no.y - 9}`, style: 'stroke:#e63946;stroke-dasharray:none;stroke-width:5;fill:none' })
+  el('circle', { class: 'stn noentry', cx: no.x, cy: no.y, r: 13 })
+  el('rect', { x: no.x - 8, y: no.y - 2, width: 16, height: 4, fill: C.cream })
+  if (!portrait) { text(no.x, no.y + 30, 'No entry'); text(no.x, no.y + 46, '401 no token, 403 wrong role', 'sm') }
+  else { text(no.x + 20, no.y + 4, 'No entry', '', 'start'); text(no.x + 20, no.y + 20, '401 or 403', 'sm', 'start') }
+  // limiter block, lamps, token readout
+  const b = S[3]
+  parts.block = el('rect', { class: 'blockbox', x: b.x - 70, y: b.y - 70, width: 140, height: 100, rx: 8 })
   parts.lamps = []
-  for (let i = 0; i < 20; i++) { const col = i % 10, row = Math.floor(i / 10); parts.lamps.push(el('circle', { class: 'lampoff', cx: X.bucket - 58 + col * 13, cy: Y_REQ - 52 + row * 14, r: 4.5 })) }
-  parts.tokText = text(X.bucket - 82, Y_REQ - 34, '', 'mono', 'end')
-  text(X.bucket - 82, Y_REQ - 18, 'tokens in the block', 'sm', 'end')
-  el('path', { class: 'line stub', d: `M${X.bucket} ${Y_REQ + 13} V${Y_NO - 14}`, style: 'stroke:#ffb703' })
-  el('rect', { class: 'stn depot', x: X.bucket - 40, y: Y_NO - 14, width: 80, height: 28, rx: 4, style: 'stroke:#ffb703' })
-  text(X.bucket, Y_NO + 5, 'Siding', '', 'middle')
-  text(X.bucket, Y_NO + 34, 'held with 429 and Retry-After', 'sm')
-  stn(X.cache, Y_REQ, 'Cache', 'LRU with ETags', { inter: true, cls: 'inter', r: 15, below: true })
+  for (let i = 0; i < 20; i++) { const col = i % 10, row = Math.floor(i / 10); parts.lamps.push(el('circle', { class: 'lampoff', cx: b.x - 58 + col * 13, cy: b.y - 52 + row * 14, r: 4.5 })) }
+  if (!portrait) { parts.tokText = text(b.x - 82, b.y - 34, '', 'mono', 'end'); text(b.x - 82, b.y - 18, 'tokens in the block', 'sm', 'end') }
+  else { parts.tokText = text(b.x + 80, b.y - 40, '', 'mono', 'start'); text(b.x + 80, b.y - 24, 'tokens in the block', 'sm', 'start') }
+  // siding for 429s
+  const sd = screen(ALONG[3], L_DROP, 1)
+  el('path', { class: 'line stub', d: portrait ? `M${b.x} ${b.y + 13} V${sd.y} H${sd.x - 40}` : `M${b.x - 9} ${b.y + 9} L${sd.x + 22} ${sd.y - 14}`, style: 'stroke:#ffb703;fill:none' })
+  el('rect', { class: 'stn depot', x: sd.x - 40, y: sd.y - 14, width: 80, height: 28, rx: 4, style: 'stroke:#ffb703' })
+  text(sd.x, sd.y + 5, 'Siding')
+  text(sd.x, sd.y + 32, portrait ? '429, Retry-After' : 'held with 429 and Retry-After', 'sm')
+  // cache contents
   parts.cacheList = el('g', {})
-  el('rect', { class: 'stn depot', x: X.origin - 46, y: Y_REQ - 22, width: 92, height: 44, rx: 6 })
-  text(X.origin, Y_REQ - 34, 'Origin', '')
-  text(X.origin, Y_REQ + 40, 'handler depot', 'sm')
-  parts.queue = text(X.origin, Y_REQ + 5, '0', 'mono')
-  const L = [
+  // origin depot
+  const o = S[5]
+  el('rect', { class: 'stn depot', x: o.x - 46, y: o.y - 22, width: 92, height: 44, rx: 6 })
+  if (!portrait) { text(o.x, o.y - 34, 'Origin'); text(o.x, o.y + 40, 'handler depot', 'sm') } else { text(o.x + 56, o.y + 4, 'Origin', '', 'start'); text(o.x + 56, o.y + 20, 'handler depot', 'sm', 'start') }
+  parts.queue = text(o.x, o.y + 5, '0', 'mono')
+  // the signal box: six levers in a row, or a 2 x 3 grid
+  const LV = [
     { key: 'rate', label: 'Rate', unit: 'trains/s', min: 0, max: 14, step: 0.5, color: C.cobalt, fmt: (v) => v.toFixed(1) },
     { key: 'auth', label: 'Ticketed', unit: '%', min: 0, max: 100, step: 5, scale: .01, color: C.green, fmt: (v) => String(v) },
     { key: 'repeat', label: 'Repeat URLs', unit: '%', min: 0, max: 100, step: 5, scale: .01, color: C.green, fmt: (v) => String(v) },
@@ -330,27 +369,28 @@ function drawBoard() {
     { key: 'cap', label: 'Capacity', unit: 'tokens', min: 1, max: 20, step: 1, color: C.amber, fmt: (v) => String(v), after: (v) => { tokens = Math.min(tokens, v) } },
     { key: 'slots', label: 'Cache slots', unit: 'entries', min: 1, max: 8, step: 1, color: C.scarlet, fmt: (v) => String(v), after: (v) => { while (cache.length > v) cache.pop(); renderCache() } },
   ]
-  el('rect', { x: 40, y: 494, width: 1120, height: 56, rx: 6, fill: '#0e2448', stroke: '#33415c', 'stroke-width': 2 })
-  text(58, 516, 'Signal box', '', 'start')
-  text(58, 532, 'six levers, drag or arrow keys', 'sm', 'start')
-  L.forEach((o, i) => lever({ ...o, x: 300 + i * 150 }))
+  if (!portrait) {
+    el('rect', { x: 40, y: 494, width: 1120, height: 56, rx: 6, fill: '#0e2448', stroke: '#33415c', 'stroke-width': 2 })
+    text(58, 516, 'Signal box', '', 'start'); text(58, 532, 'six levers, drag or arrow keys', 'sm', 'start')
+    LV.forEach((o, i) => lever({ ...o, x: 300 + i * 150, y0: 470, y1: 420, py: 502 }))
+  } else {
+    text(20, 740, 'Signal box', '', 'start'); text(20, 756, 'six levers, drag or arrow keys', 'sm', 'start')
+    LV.forEach((o, i) => lever({ ...o, x: 80 + (i % 3) * 130, y0: 830 + Math.floor(i / 3) * 115, y1: 790 + Math.floor(i / 3) * 115, py: 840 + Math.floor(i / 3) * 115, narrow: true }))
+  }
+  renderCache()
 }
 function lever(o) {
   const g = el('g', { class: 'lever', tabindex: 0, role: 'slider', 'aria-label': `${o.label} in ${o.unit}`, 'aria-valuemin': o.min, 'aria-valuemax': o.max })
-  const y0 = 470, y1 = 420
+  const { y0, y1 } = o
   el('rect', { class: 'slot', x: o.x - 6, y: y1 - 8, width: 12, height: y0 - y1 + 16, rx: 6 }, g)
   const arm = el('line', { class: 'handle', x1: o.x, y1: y0 + 12, x2: o.x, y2: y0, stroke: o.color }, g)
   const knob = el('circle', { class: 'knob', cx: o.x, cy: y0, r: 9 }, g)
-  el('rect', { class: 'plate', x: o.x - 60, y: 502, width: 120, height: 40, rx: 4 }, g)
-  const v = text(o.x, 520, '', 'mono', 'middle', g)
-  text(o.x, 534, `${o.label}, ${o.unit}`, 'sm', 'middle', g)
+  const pw = o.narrow ? 112 : 120
+  el('rect', { class: 'plate', x: o.x - pw / 2, y: o.py, width: pw, height: 40, rx: 4 }, g)
+  const v = text(o.x, o.py + 18, '', 'mono', 'middle', g)
+  text(o.x, o.py + 32, `${o.label}, ${o.unit}`, 'sm', 'middle', g)
   let raw = o.scale ? cfg[o.key] / o.scale : cfg[o.key]
-  const paint = () => {
-    const t = (raw - o.min) / (o.max - o.min), y = y0 - (y0 - y1) * t
-    knob.setAttribute('cy', y); arm.setAttribute('y2', y)
-    v.textContent = o.fmt(raw)
-    g.setAttribute('aria-valuenow', raw); g.setAttribute('aria-valuetext', `${o.fmt(raw)} ${o.unit}`)
-  }
+  const paint = () => { const t = (raw - o.min) / (o.max - o.min), y = y0 - (y0 - y1) * t; knob.setAttribute('cy', y); arm.setAttribute('y2', y); v.textContent = o.fmt(raw); g.setAttribute('aria-valuenow', raw); g.setAttribute('aria-valuetext', `${o.fmt(raw)} ${o.unit}`) }
   const set = (n) => { raw = Math.max(o.min, Math.min(o.max, Math.round(n / o.step) * o.step)); cfg[o.key] = o.scale ? raw * o.scale : raw; o.after?.(raw); paint() }
   let drag = null
   const pxPerStep = () => Math.max(2, (50 / ((o.max - o.min) / o.step)) * scale)
@@ -359,40 +399,47 @@ function lever(o) {
   const end = () => { drag = null }
   g.addEventListener('pointerup', end); g.addEventListener('pointercancel', end)
   g.addEventListener('wheel', (e) => { e.preventDefault(); set(raw + (e.deltaY < 0 ? o.step : -o.step)) }, { passive: false })
-  g.addEventListener('keydown', (e) => {
-    if (e.key === 'ArrowUp' || e.key === 'ArrowRight') set(raw + o.step)
-    else if (e.key === 'ArrowDown' || e.key === 'ArrowLeft') set(raw - o.step)
-    else if (e.key === 'Home') set(o.min); else if (e.key === 'End') set(o.max); else return
-    e.preventDefault()
-  })
+  g.addEventListener('keydown', (e) => { if (e.key === 'ArrowUp' || e.key === 'ArrowRight') set(raw + o.step); else if (e.key === 'ArrowDown' || e.key === 'ArrowLeft') set(raw - o.step); else if (e.key === 'Home') set(o.min); else if (e.key === 'End') set(o.max); else return; e.preventDefault() })
   paint()
 }
 function renderCache() {
+  if (!parts.cacheList) return
   parts.cacheList.replaceChildren()
-  const x = X.cache - 64
-  text(x, Y_REQ + 76, cache.length ? 'in the cache, newest first' : 'cache empty, misses run to the origin', 'sm', 'start', parts.cacheList)
-  cache.forEach((c, i) => { const t = text(x, Y_REQ + 92 + i * 14, `${c.url}  ${c.etag}`, 'sm', 'start', parts.cacheList); t.style.fill = i === 0 ? C.cream : C.dim })
+  const c4 = stationPos(4)
+  const x = portrait ? c4.x + 30 : c4.x - 64, y = portrait ? c4.y + 36 : c4.y + 76
+  text(x, y, cache.length ? 'in the cache, newest first' : 'cache empty, misses run to the origin', 'sm', 'start', parts.cacheList)
+  cache.forEach((c, i) => { const t = text(x, y + 16 + i * 14, portrait ? c.url : `${c.url}  ${c.etag}`, 'sm', 'start', parts.cacheList); t.style.fill = i === 0 ? C.cream : C.dim })
 }
 
+// ---------- trains ----------
 const canvas = $('trains'), ctx = canvas.getContext('2d')
-let scale = 1, ox = 0, oy = 0
-function resize() {
+let scale = 1, ox = 0, oy = 0, VW = 1200, VH = 560
+function layout() {
+  const w = $('frame').getBoundingClientRect().width
+  const want = w < 700
+  if (want !== portrait) {
+    portrait = want
+    VW = portrait ? 420 : 1200; VH = portrait ? 980 : 560
+    svg.setAttribute('viewBox', `0 0 ${VW} ${VH}`)
+    $('frame').classList.toggle('portrait', portrait)
+    drawBoard()
+  }
   const r = $('frame').getBoundingClientRect()
   canvas.width = Math.round(r.width * devicePixelRatio); canvas.height = Math.round(r.height * devicePixelRatio)
-  scale = Math.min(r.width / 1200, r.height / 560); ox = (r.width - 1200 * scale) / 2; oy = (r.height - 560 * scale) / 2
+  scale = Math.min(r.width / VW, r.height / VH); ox = (r.width - VW * scale) / 2; oy = (r.height - VH * scale) / 2
   ctx.setTransform(devicePixelRatio * scale, 0, 0, devicePixelRatio * scale, devicePixelRatio * ox, devicePixelRatio * oy)
 }
-addEventListener('resize', resize)
-const SPEED = 200
+addEventListener('resize', layout)
+const SPEED = 0.19   // fraction of the line per second
 function step(dt, now) {
   tokens = Math.min(cfg.cap, tokens + cfg.refill * dt)
   for (const r of reqs) {
     if (r.status && r.phase === 'drop') { r.dropT += dt; continue }
-    if (r.phase === 'origin-wait') { if (now >= r.waitUntil) { r.status = completeOrigin(r); count(r.status); r.phase = 'ret'; r.x = X.origin; r.y = Y_REQ - 30 } continue }
+    if (r.phase === 'origin-wait') { if (now >= r.waitUntil) { r.status = completeOrigin(r); count(r.status); r.phase = 'ret'; r.cross = 0 } continue }
     if (r.phase === 'fwd') {
-      const tx = stageX[r.stage + 1]
-      if (reduced) { r.dwell += dt; if (r.dwell < 0.35) continue; r.dwell = 0; r.x = tx } else r.x = Math.min(r.x + SPEED * dt, tx)
-      if (r.x >= tx) {
+      const ta = ALONG[r.stage + 1]
+      if (reduced) { r.dwell += dt; if (r.dwell < 0.35) continue; r.dwell = 0; r.a = ta } else r.a = Math.min(r.a + SPEED * dt, ta)
+      if (r.a >= ta) {
         r.stage++
         const verdict = decide(r, ST[r.stage])
         if (verdict === 'origin-work') r.phase = 'origin-wait'
@@ -400,10 +447,10 @@ function step(dt, now) {
       }
     } else if (r.phase === 'loop') {
       r.loopT += dt * (reduced ? 4 : 1.6)
-      if (r.loopT >= 1) { r.phase = 'ret'; r.x = X.cache; r.y = Y_RET }
+      if (r.loopT >= 1) { r.phase = 'ret'; r.cross = 1; r.lane = L_RET }
     } else if (r.phase === 'ret') {
-      if (r.y > Y_RET) r.y = reduced ? Y_RET : Math.max(Y_RET, r.y - SPEED * 1.4 * dt)
-      else { r.x -= SPEED * (reduced ? 4 : 1.3) * dt; if (r.x <= X.source) finish(r) }
+      if (r.cross < 1) r.cross = reduced ? 1 : Math.min(1, r.cross + dt * 2.2)
+      else { r.lane = L_RET; r.a -= SPEED * (reduced ? 4 : 1.3) * dt; if (r.a <= 0) finish(r) }
     }
   }
   for (const r of reqs) if (r.phase === 'drop' && r.dropT > 1.1) finish(r)
@@ -412,25 +459,33 @@ function count(s) { tallies[s] = (tallies[s] ?? 0) + 1; renderTallies() }
 function finish(r) { reqs.splice(reqs.indexOf(r), 1) }
 function train(x, y, color, alpha = 1) {
   ctx.globalAlpha = alpha; ctx.fillStyle = color
-  ctx.beginPath(); ctx.roundRect(x - 10, y - 5, 20, 10, 3); ctx.fill()
-  ctx.fillStyle = '#0b1d3a'; ctx.fillRect(x - 6, y - 2, 4, 4); ctx.fillRect(x + 2, y - 2, 4, 4)
-  ctx.globalAlpha = 1
+  ctx.save(); ctx.translate(x, y); if (portrait) ctx.rotate(Math.PI / 2)
+  ctx.beginPath(); ctx.roundRect(-10, -5, 20, 10, 3); ctx.fill()
+  ctx.fillStyle = '#0b1d3a'; ctx.fillRect(-6, -2, 4, 4); ctx.fillRect(2, -2, 4, 4)
+  ctx.restore(); ctx.globalAlpha = 1
 }
 function draw(now) {
-  ctx.clearRect(-ox / scale, -oy / scale, 1200 + 2 * ox / scale, 560 + 2 * oy / scale)
+  ctx.clearRect(-ox / scale, -oy / scale, VW + 2 * ox / scale, VH + 2 * oy / scale)
   let queue = 0, held = 0
+  const S5 = stationPos(5), S4 = stationPos(4), R4 = stationPos(4, L_RET)
   for (const r of reqs) {
-    let x = r.x, y = r.y, a = 1
+    let p, a = 1
     if (r.phase === 'drop') {
-      const p = Math.min(r.dropT / 0.5, 1)
-      x = stageX[r.stage]; y = Y_REQ + 13 + (Y_NO - 26 - Y_REQ) * p
+      const t = Math.min(r.dropT / 0.5, 1)
+      p = screen(ALONG[r.stage], L_DROP, t)
       a = Math.max(0, 1 - Math.max(0, r.dropT - 0.55) / 0.5)
-      if (r.status === '429') { x = X.bucket - 24 + (held % 5) * 12; y = Y_REQ + 40 + Math.floor(held / 5) * 12; held++ }
-    }
-    if (r.phase === 'loop') { const t = r.loopT; x = X.cache + Math.sin(Math.PI * t) * 68; y = (Y_REQ + Y_RET) / 2 + Math.cos(Math.PI * t) * (Y_REQ - Y_RET) / 2 }
-    if (r.phase === 'origin-wait') { x = X.origin - 30 + (queue++ % 3) * 14; y = Y_REQ }
+      if (r.status === '429') { const sd = screen(ALONG[3], L_DROP, 1); p = portrait ? { x: sd.x - 30 + (held % 3) * 22, y: sd.y + 50 + Math.floor(held / 3) * 14 } : { x: sd.x - 24 + (held % 5) * 12, y: sd.y + 48 + Math.floor(held / 5) * 12 }; held++ }
+    } else if (r.phase === 'loop') {
+      const t = r.loopT
+      p = portrait ? { x: S4.x - Math.sin(Math.PI * t) * 36 - (S4.x - R4.x) * t * t, y: S4.y + 40 * t } : { x: S4.x + Math.sin(Math.PI * t) * 68, y: (S4.y + R4.y) / 2 + Math.cos(Math.PI * t) * (S4.y - R4.y) / 2 }
+    } else if (r.phase === 'origin-wait') {
+      p = portrait ? { x: S5.x, y: S5.y - 30 + (queue++ % 3) * 14 } : { x: S5.x - 30 + (queue++ % 3) * 14, y: S5.y }
+    } else if (r.phase === 'ret' && r.cross < 1) {
+      const from = screen(r.a, L_REQ), to = screen(r.a, L_RET)
+      p = { x: from.x + (to.x - from.x) * r.cross, y: from.y + (to.y - from.y) * r.cross }
+    } else p = screen(r.a, r.lane)
     const color = r.status === '429' ? C.amber : (r.status === '401' || r.status === '403') ? C.scarlet : r.status === '200 origin' ? C.green : r.status ? C.sky : C.cream
-    train(x, y, color, a)
+    train(p.x, p.y, color, a)
   }
   const lit = Math.floor(tokens)
   for (let i = 0; i < 20; i++) { const l = parts.lamps[i]; l.style.display = i < cfg.cap ? '' : 'none'; l.setAttribute('class', i < lit ? 'lampon' : (lit === 0 ? 'lampred' : 'lampoff')) }
@@ -449,11 +504,10 @@ let last = performance.now(), acc = 0
 function loop(now) {
   const dt = Math.min((now - last) / 1000, 0.05); last = now
   if (!paused) { acc += dt * cfg.rate; while (acc >= 1) { spawn(); acc -= 1 } step(dt, now) }
-  draw(now)
-  requestAnimationFrame(loop)
+  draw(now); requestAnimationFrame(loop)
 }
 setInterval(() => { if (!paused) for (let i = 0; i < 10; i++) setTimeout(spawn, i * 55) }, 11000)
-drawBoard(); renderCache(); renderTallies(); resize(); requestAnimationFrame(loop)
+drawBoard(); renderTallies(); layout(); requestAnimationFrame(loop)
 </script>
 </body>
 </html>

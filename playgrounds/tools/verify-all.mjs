@@ -8,16 +8,16 @@ const browser = await chromium.launch({ executablePath: EXE, headless: true })
 const sites = {
   pulsehttp: async (p) => { await p.waitForTimeout(5000); await p.click('#burst'); await p.waitForTimeout(3600); return p.evaluate(() => ({ service: document.getElementById('serviceMsg').textContent, warn: document.getElementById('service').classList.contains('warn'), tallies: [...document.querySelectorAll('.dep .v')].map(e => e.textContent) })) },
   gitengine: async (p) => {
-    await p.waitForFunction(() => [...document.querySelectorAll('#term .out')].some(el => el.textContent.includes('merge commit')), null, { timeout: 75000 }); await p.waitForTimeout(1200)
+    await p.waitForFunction(() => [...document.querySelectorAll('#term .out')].some(el => el.textContent.includes('survey complete')), null, { timeout: 75000 }); await p.waitForTimeout(1200)
     await p.screenshot({ path: `${OUT}/gitengine/desktop-merged.png` })
     const run = async (cmd) => { await p.fill('#cmd', cmd); await p.press('#cmd', 'Enter'); await p.waitForTimeout(350) }
-    await run('checkout exp'); await p.click('[aria-label="open README.md"]'); await p.fill('#editor', '# sandbox\nexp rewrote this line\n'); await run('add .'); await run("commit -m 'exp edits readme'"); await run('checkout main'); await run('merge exp'); await p.waitForTimeout(400)
+    await run('checkout tests'); await p.click('[aria-label="open README.md"]'); await p.fill('#editor', '# GitEngine sandbox\ntests rewrote this line\n'); await run('add .'); await run("commit -m 'tests edits readme'"); await run('checkout main'); await p.click('[aria-label="open README.md"]'); await p.fill('#editor', '# GitEngine sandbox\nmain rewrote this line too\n'); await run('add .'); await run("commit -m 'main edits readme'"); await run('merge tests'); await p.waitForTimeout(400)
     return p.evaluate(() => ({ gauge: document.getElementById('gaugeMsg').textContent, warn: document.getElementById('gauge').classList.contains('warn') }))
   },
   jsonlp: async (p) => {
-    await p.waitForFunction(() => document.getElementById('vBig')?.textContent === 'SEALED', null, { timeout: 90000 }); await p.waitForTimeout(800)
+    await p.waitForFunction(() => document.getElementById('vBig')?.textContent === 'Sealed', null, { timeout: 90000 }); await p.waitForTimeout(800)
     await p.screenshot({ path: `${OUT}/jsonlp/desktop-sealed.png` })
-    await p.click('#presets button[data-name="trailing comma"]'); await p.waitForFunction(() => document.getElementById('hisRes').textContent === 'RETURN', null, { timeout: 15000 }); await p.waitForTimeout(700)
+    await p.click('#presets button[data-name="trailing comma"]'); await p.waitForFunction(() => document.getElementById('hisRes').textContent === 'Refused', null, { timeout: 15000 }); await p.waitForTimeout(700)
     return p.evaluate(() => ({ stamp: document.getElementById('stampMsg').textContent, bad: document.getElementById('stampbox').classList.contains('bad') }))
   },
   wcgo: async (p) => {

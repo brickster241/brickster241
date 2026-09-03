@@ -14,32 +14,33 @@
     --lacquer: #120e0c; --lacquer2: #1b1512; --lacquer3: #241c17;
     --frame: #c9a15a; --frame2: #8a6d3b; --rod: #5a4636;
     --bead: #c0392b; --bead2: #8e2a20; --bone: #e8d8b8; --bone2: #b8a488;
-    --ink: #f4ecdc; --dim: #b9ab93; --faint: #7d7160; --gold: #f2c14e; --seam: #7fb3d5;
+    --ink: #f4ecdc; --dim: #b9ab93; --faint: #9c8f7a; --gold: #f2c14e; --seam: #7fb3d5;
     --display: 'Shippori Mincho', 'Hiragino Mincho ProN', 'Yu Mincho', serif;
     --text: 'Zen Kaku Gothic New', 'Hiragino Sans', sans-serif;
     --mono: 'Noto Sans Mono', ui-monospace, Menlo, monospace;
   }
   * { box-sizing: border-box; margin: 0; }
   html { color-scheme: dark; background: var(--lacquer); }
-  body { background: var(--lacquer); color: var(--ink); font-family: var(--text); font-size: 16px; line-height: 1.6; -webkit-font-smoothing: antialiased; }
+  body { background: var(--lacquer); color: var(--ink); font-family: var(--text); font-size: 16px; line-height: 1.6; -webkit-font-smoothing: antialiased; overflow-x: hidden; }
   ::selection { background: var(--bead); color: var(--ink); }
   :focus-visible { outline: 2px solid var(--gold); outline-offset: 3px; }
   a { color: var(--gold); text-decoration: none; border-bottom: 1px solid rgba(242,193,78,.35); }
   a:hover { border-color: var(--gold); }
   * { scrollbar-color: var(--frame2) var(--lacquer2); scrollbar-width: thin; }
 
-  header { display: grid; grid-template-columns: 1fr auto; gap: 24px; align-items: end; padding: 28px clamp(18px, 4vw, 48px) 20px; border-bottom: 2px solid var(--frame2); }
+  header { padding: 28px clamp(18px, 4vw, 48px) 0; }
   h1 { font-family: var(--display); font-weight: 800; font-size: clamp(30px, 4vw, 44px); letter-spacing: .02em; line-height: 1; }
   .sub { color: var(--dim); margin-top: 8px; font-size: 15.5px; max-width: 70ch; }
-  .status { min-width: 320px; max-width: 460px; border: 2px solid var(--frame2); border-radius: 6px; padding: 10px 14px; display: flex; gap: 12px; align-items: center; font-weight: 500; font-size: 14.5px; }
+  .status { margin-top: 16px; border-top: 2px solid var(--frame2); border-bottom: 2px solid var(--frame2); padding: 10px clamp(18px, 4vw, 48px); margin-left: calc(-1 * clamp(18px, 4vw, 48px)); margin-right: calc(-1 * clamp(18px, 4vw, 48px)); display: flex; gap: 12px; align-items: center; font-weight: 500; font-size: 14.5px; }
   .status .bd { width: 14px; height: 14px; border-radius: 50%; background: var(--bone); flex: none; border: 2px solid var(--frame2); }
   .status.carry { color: var(--seam); border-color: var(--seam); }
   .status.carry .bd { background: var(--seam); border-color: var(--seam); }
   .status.bad { color: var(--bead); border-color: var(--bead); }
   .status.bad .bd { background: var(--bead); border-color: var(--bead); }
 
-  .stage { padding: 10px clamp(10px, 2vw, 24px) 0; overflow-x: auto; }
-  .frame { position: relative; width: 100%; min-width: 960px; aspect-ratio: 1200 / 480; max-height: 74dvh; margin: 0 auto; }
+  .stage { padding: 10px clamp(10px, 2vw, 24px) 0; }
+  .frame { position: relative; width: 100%; aspect-ratio: 1200 / 830; margin: 0 auto; }
+  .frame.portrait { aspect-ratio: 420 / 1470; max-height: none; }
   .frame svg { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
   svg text { font-family: var(--text); font-size: 13px; font-weight: 500; fill: var(--ink); }
   svg text.sm { font-size: 11.5px; font-weight: 400; fill: var(--dim); }
@@ -75,53 +76,55 @@
   .presets button.go { background: var(--bead); border-color: var(--bead); font-weight: 700; text-align: center; }
   textarea { flex: 1; width: 100%; min-height: 0; resize: none; background: var(--lacquer2); color: var(--ink); border: 0; padding: 12px 16px; font: 14px/1.6 var(--mono); }
   textarea:focus { outline: none; }
+  textarea, #log { scrollbar-width: thin; scrollbar-color: #9c8f7a var(--lacquer2); }
+  textarea::-webkit-scrollbar, #log::-webkit-scrollbar { width: 8px; } textarea::-webkit-scrollbar-thumb, #log::-webkit-scrollbar-thumb { background: #9c8f7a; border-radius: 4px; }
   #log { flex: 1; min-height: 0; overflow: auto; padding: 8px 0; font: 13px/1.7 var(--mono); background: var(--lacquer2); color: var(--dim); }
   #log div { padding: 0 16px; white-space: pre-wrap; }
   #log div.carry { color: var(--seam); }
   #log div.end { color: var(--ink); }
 
-  main { max-width: 1120px; margin: 0 auto; padding: 44px clamp(18px, 4vw, 48px) 80px; display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 48px; }
-  section { margin-bottom: 44px; }
+  main { max-width: 820px; margin: 0 auto; padding: 44px clamp(18px, 4vw, 48px) 72px; }
+  section { margin-bottom: 40px; padding-top: 28px; border-top: 1px solid var(--frame2); position: relative; }
+  section::before { content: ''; position: absolute; top: -8px; left: 0; width: 26px; height: 15px; border-radius: 50%; background: var(--bead); border: 1.5px solid var(--bead2); }
+  section:first-child { border-top: 0; padding-top: 0; }
+  section:first-child::before { display: none; }
   h2 { font-family: var(--display); font-size: 26px; font-weight: 600; margin-bottom: 12px; color: var(--ink); }
-  h2::after { content: ''; display: block; width: 56px; height: 3px; background: var(--frame); margin-top: 8px; }
   p { color: var(--dim); max-width: 66ch; margin-bottom: 12px; }
   p b, li b { color: var(--ink); font-weight: 700; }
   ul, ol { color: var(--dim); padding-left: 22px; max-width: 66ch; }
   li { margin-bottom: 10px; }
   li::marker { color: var(--frame); }
   code { font-family: var(--mono); font-size: .9em; color: var(--ink); background: var(--lacquer3); padding: 1px 6px; border-radius: 3px; }
-  table { border-collapse: collapse; width: 100%; max-width: 640px; font-size: 15px; margin: 8px 0 16px; }
-  th, td { text-align: left; padding: 9px 12px; border-bottom: 1px solid var(--lacquer3); }
-  td.n { font-family: var(--mono); color: var(--gold); font-weight: 600; white-space: nowrap; }
-  aside .card { position: sticky; top: 24px; border: 2px solid var(--frame2); border-radius: 6px; padding: 14px 16px; }
-  aside .card h3 { font-family: var(--display); font-size: 18px; font-weight: 600; margin-bottom: 10px; }
-  aside .card ul { list-style: none; padding: 0; }
-  aside .card li { display: flex; gap: 10px; align-items: baseline; font-size: 14.5px; margin-bottom: 8px; color: var(--dim); }
-  aside .card li .bd { width: 12px; height: 12px; border-radius: 50%; flex: none; align-self: center; }
-  footer { border-top: 2px solid var(--frame2); padding: 18px clamp(18px, 4vw, 48px); color: var(--faint); font-size: 13.5px; display: flex; flex-wrap: wrap; gap: 8px 24px; }
+  .tally { max-width: 680px; margin: 8px 0 16px; }
+  .tally .row { display: grid; grid-template-columns: 1fr auto; gap: 14px; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--lacquer3); }
+  .tally .row .what { color: var(--ink); }
+  .tally .row .what small { display: block; color: var(--dim); font-size: 13.5px; }
+  .tally .beads { display: flex; gap: 4px; align-items: center; }
+  .tally .beads i { width: 14px; height: 9px; border-radius: 50%; background: var(--bone); border: 1px solid var(--bone2); }
+  .tally .beads i.r { background: var(--bead); border-color: var(--bead2); }
+  .tally .beads b { font-family: var(--display); font-size: 22px; font-weight: 600; color: var(--gold); margin-left: 10px; }
+  .rubric { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 10px 22px; max-width: 760px; margin-top: 6px; }
+  .rubric div { display: flex; gap: 10px; align-items: center; color: var(--dim); font-size: 14.5px; }
+  .rubric .bd { width: 14px; height: 9px; border-radius: 50%; flex: none; }
+  footer { border-top: 2px solid var(--frame2); padding: 18px clamp(18px, 4vw, 48px); color: var(--faint); font-size: 13.5px; display: flex; align-items: center; gap: 14px; }
+  footer .mark { width: 34px; height: 34px; border: 1.5px solid var(--frame); border-radius: 4px; display: grid; place-items: center; font-family: var(--display); font-size: 15px; color: var(--frame); flex: none; }
   @media (max-width: 900px) {
-    header { grid-template-columns: 1fr; align-items: start; }
-    .status { min-width: 0; max-width: none; }
     .deck { grid-template-columns: 1fr; }
     .deck > div { border-right: 0; border-bottom: 2px solid var(--frame2); height: auto; min-height: 200px; max-height: 320px; }
-    main { grid-template-columns: 1fr; gap: 24px; }
-    aside .card { position: static; }
   }
 </style>
 </head>
 <body>
 
 <header>
-  <div>
-    <h1>wc-Go</h1>
-    <div class="sub">The shipped counting algorithm, worked on a soroban: bytes stream in, beads click up, and a character cut in half at a chunk seam is carried to the next chunk.</div>
-  </div>
+  <h1>wc-Go</h1>
+  <div class="sub">The shipped counting algorithm, worked on a soroban: bytes stream in, beads click up, and a character cut in half at a chunk seam is carried to the next chunk.</div>
   <div class="status" id="status" role="status" aria-live="polite"><span class="bd"></span><span id="statusMsg">Counts agree with the reference.</span></div>
 </header>
 
 <div class="stage">
   <div class="frame" id="frame">
-    <svg id="soroban" viewBox="0 0 1200 480" preserveAspectRatio="xMidYMid meet" aria-label="A soroban showing wc-Go's counts"></svg>
+    <svg id="soroban" viewBox="0 0 1200 830" preserveAspectRatio="xMidYMid meet" aria-label="A soroban showing wc-Go's counts"></svg>
   </div>
 </div>
 
@@ -141,60 +144,49 @@
 </div>
 
 <main>
-  <div>
-    <section>
-      <h2>What you are looking at</h2>
-      <p><b>wc-Go</b> is a rewrite of the Unix <code>wc</code> in Go that reads its input in chunks, counts lines, words, bytes and characters concurrently, and agrees with GNU coreutils on every case in a 59-case differential suite. The soroban above shows the four counts as beads. The real program reads 32 KB at a time; here the chunks are tiny, so you can watch the seams.</p>
-      <p>Each rod group is one counter. A soroban digit is read the way it has been read for four hundred years: the red bead above the beam is worth five when it is pushed down to the beam, and each bone bead below is worth one when pushed up. The digit is printed beneath the rods for anyone who would rather not read beads.</p>
-    </section>
-
-    <section>
-      <h2>The seam problem</h2>
-      <p>UTF-8 spells most non-ASCII characters in two, three or four bytes. Read a file in fixed-size chunks and sooner or later a chunk ends in the middle of one. Count the bytes naively and the character is either counted twice or, worse, decoded as garbage on both sides of the seam.</p>
-      <p>The algorithm looks back at most four bytes from the end of each chunk for the start of a character, decides whether the whole character arrived, and if it did not, holds those head bytes back and prepends them to the next chunk. Above, that is the blue bead moving from one tile to the next: the <b>carry</b>. The preset called <b>boundary trap</b> puts an <code>é</code> (bytes <code>c3 a9</code>) exactly across the 16-byte seam. Its first byte is carried; its second arrives with the next chunk; the character counter goes up once.</p>
-      <p>Word state has to survive the seam too. A word that starts in one chunk and continues in the next is one word, so the counter remembers whether it was inside a word when the chunk ended.</p>
-    </section>
-
-    <section>
-      <h2>Try this</h2>
-      <ul>
-        <li>Pick a chunk size of <b>4</b> on the frame and stream the <b>emoji storm</b>. Every emoji is four bytes, so almost every seam cuts one and the carry bead is rarely still.</li>
-        <li>Stream <b>utf-8 mix</b> at 16. Devanagari, Cyrillic, Japanese and an emoji all count once each, and the bytes counter runs far ahead of the characters counter, which is the whole difference between <code>wc -c</code> and <code>wc -m</code>.</li>
-        <li>Drop a real file onto the page. Files over 4 KB stream at the real 32 KB chunk size, with throughput measured in this tab.</li>
-      </ul>
-    </section>
-
-    <section>
-      <h2>Measured, not simulated</h2>
-      <p>Agreement is checked by a differential suite that runs every flag combination through wc-Go and through coreutils and compares the output byte for byte. That suite caught a real bug during development: an invalid byte mid-stream made the counter silently drop the rest of a chunk, and the fix is the tail-splitting logic described above. It also caught the reference lying. Under a POSIX locale, coreutils <code>wc -m</code> counts bytes, not characters, so the suite pins <code>LC_ALL=en_US.UTF-8</code> before it trusts a number.</p>
-      <table>
-        <tbody>
-          <tr><td>Differential agreement with coreutils</td><td class="n">59 of 59</td><td>every flag combination, byte for byte</td></tr>
-          <tr><td>Lines, on the repository's own harness</td><td class="n">5.6 GB/s</td><td>3.9 to 12.8 times coreutils on specific operations</td></tr>
-          <tr><td>Words</td><td class="n">0.8 times</td><td>the one honest loss, published anyway</td></tr>
-        </tbody>
-      </table>
-      <p>To check it yourself: <code>go test ./...</code> runs the suite, and <code>wc -lwmc yourfile</code> beside <code>wc-go yourfile</code> should print the same four numbers.</p>
-    </section>
-  </div>
-  <aside>
-    <div class="card">
-      <h3>Reading the frame</h3>
-      <ul>
-        <li><span class="bd" style="background:var(--bead)"></span><span>Red bead, worth five at the beam</span></li>
-        <li><span class="bd" style="background:var(--bone)"></span><span>Bone beads, worth one each, pushed up</span></li>
-        <li><span class="bd" style="background:var(--seam)"></span><span>The carry: head bytes of a split character</span></li>
-        <li><span class="bd" style="background:var(--gold)"></span><span>Gold: the reference row agrees</span></li>
-        <li><span>Chunk size is chosen on the frame: click a bead or use arrow keys.</span></li>
-        <li><span>Source: <a href="https://github.com/brickster241/wc-Go" target="_blank" rel="noreferrer">github.com/brickster241/wc-Go</a></span></li>
-      </ul>
+  <section>
+    <h2>What you are looking at</h2>
+    <p><b>wc-Go</b> is a rewrite of the Unix <code>wc</code> in Go that reads its input in chunks, counts lines, words, bytes and characters concurrently, and agrees with GNU coreutils on every case in a 59-case differential suite. The soroban above shows the four counts as beads. The real program reads 32 KB at a time; here the chunks are tiny, so you can watch the seams.</p>
+    <p>Each rod group is one counter. A soroban digit is read the way it has been read for four hundred years: the red bead above the beam is worth five when it is pushed down to the beam, and each bone bead below is worth one when pushed up. The digit is printed beneath the rods for anyone who would rather not read beads.</p>
+    <div class="rubric">
+      <div><span class="bd" style="background:var(--bead)"></span>red bead, worth five at the beam</div>
+      <div><span class="bd" style="background:var(--bone)"></span>bone beads, worth one each, pushed up</div>
+      <div><span class="bd" style="background:var(--seam)"></span>the carry: head bytes of a split character</div>
+      <div><span class="bd" style="background:var(--gold)"></span>gold: the reference row agrees</div>
     </div>
-  </aside>
+  </section>
+
+  <section>
+    <h2>The seam problem</h2>
+    <p>UTF-8 spells most non-ASCII characters in two, three or four bytes. Read a file in fixed-size chunks and sooner or later a chunk ends in the middle of one. Count the bytes naively and the character is either counted twice or, worse, decoded as garbage on both sides of the seam.</p>
+    <p>The algorithm looks back at most four bytes from the end of each chunk for the start of a character, decides whether the whole character arrived, and if it did not, holds those head bytes back and prepends them to the next chunk. Above, that is the blue bead moving from one tile to the next: the <b>carry</b>. The preset called <b>boundary trap</b> puts an <code>é</code> (bytes <code>c3 a9</code>) exactly across the 16-byte seam. Its first byte is carried; its second arrives with the next chunk; the character counter goes up once.</p>
+    <p>Word state has to survive the seam too. A word that starts in one chunk and continues in the next is one word, so the counter remembers whether it was inside a word when the chunk ended.</p>
+  </section>
+
+  <section>
+    <h2>Try this</h2>
+    <ul>
+      <li>Pick a chunk size of <b>4</b> on the frame and stream the <b>emoji storm</b>. Every emoji is four bytes, so almost every seam cuts one and the carry bead is rarely still.</li>
+      <li>Stream <b>utf-8 mix</b> at 16. Devanagari, Cyrillic, Japanese and an emoji all count once each, and the bytes counter runs far ahead of the characters counter, which is the whole difference between <code>wc -c</code> and <code>wc -m</code>.</li>
+      <li>Drop a real file onto the page. Files over 4 KB stream at the real 32 KB chunk size, with throughput measured in this tab.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>The tally: measured, not simulated</h2>
+    <p>Agreement is checked by a differential suite that runs every flag combination through wc-Go and through coreutils and compares the output byte for byte. That suite caught a real bug during development: an invalid byte mid-stream made the counter silently drop the rest of a chunk, and the fix is the tail-splitting logic described above. It also caught the reference lying. Under a POSIX locale, coreutils <code>wc -m</code> counts bytes, not characters, so the suite pins <code>LC_ALL=en_US.UTF-8</code> before it trusts a number.</p>
+    <div class="tally">
+      <div class="row"><div class="what">Differential agreement with coreutils<small>every flag combination, byte for byte</small></div><div class="beads"><i class="r"></i><i class="r"></i><i class="r"></i><i class="r"></i><i class="r"></i><b>59 of 59</b></div></div>
+      <div class="row"><div class="what">Lines, on the repository's own harness<small>3.9 to 12.8 times coreutils on specific operations</small></div><div class="beads"><i class="r"></i><i class="r"></i><i class="r"></i><i class="r"></i><i></i><b>5.6 GB/s</b></div></div>
+      <div class="row"><div class="what">Words<small>the one honest loss, published anyway</small></div><div class="beads"><i class="r"></i><i></i><i></i><i></i><i></i><b>0.8 times</b></div></div>
+    </div>
+    <p>To check it yourself: clone <a href="https://github.com/brickster241/wc-Go" target="_blank" rel="noreferrer">the repository</a>, run <code>go test ./...</code> for the suite, and <code>wc -lwmc yourfile</code> beside <code>wc-go yourfile</code> should print the same four numbers.</p>
+  </section>
 </main>
 
 <footer>
-  <span>wc-Go by Ashish Verma.</span>
-  <span>Measured against coreutils, 59 of 59, with the locale pinned so the reference tells the truth.</span>
+  <span class="mark" aria-hidden="true">算</span>
+  <span>wc-Go by Ashish Verma. Counted against coreutils, 59 of 59, with the locale pinned so the reference tells the truth.</span>
 </footer>
 
 <script type="module">
@@ -244,99 +236,111 @@ function text(x, y, s, cls = '', anchor = 'middle', parent = svg) { const t = el
 let chunkSize = 16
 const S = {}
 const GROUPS = [['Lines', 'l'], ['Words', 'w'], ['Bytes', 'c'], ['Chars', 'm']]
-const DIGITS = 4
-const FRAME = { x: 60, y: 150, w: 1080, h: 230 }
-const BEAM_Y = 218
+const DIGITS = 13
+let portrait = false
 const SIZES = [4, 8, 16, 32, 64]
+// geometry per orientation: one frame with four rod groups in a row, or two frames stacked, two groups each
+const G = () => portrait
+  ? { VW: 420, VH: 1470, tray: { x: 20, y: 40, w: 380 }, pick: { x: 40, y: 134, gap: 68 }, frames: [0, 1, 2, 3].map((i) => ({ x: 20, y: 200 + i * 305, w: 380, h: 200, beam: 266 + i * 305, groups: [i] })), ref: { y: 1430 }, rod: 38 }
+  : { VW: 1200, VH: 830, tray: { x: 60, y: 56, w: 1080 }, pick: { x: 790, y: 96, gap: 60 }, frames: [0, 1, 2, 3].map((i) => ({ x: 60 + (i % 2) * 560, y: 150 + Math.floor(i / 2) * 330, w: 520, h: 230, beam: 218 + Math.floor(i / 2) * 330, groups: [i] })), ref: { y: 800 }, rod: 46 }
 function drawSoroban() {
-  text(FRAME.x, 40, 'Feed tray', '', 'start')
-  S.trayStat = text(FRAME.x + 1080, 40, '', 'sm', 'end')
-  S.tiles = el('g', {})
-  S.carry = el('g', {})
-  el('rect', { class: 'wood', x: FRAME.x, y: FRAME.y, width: FRAME.w, height: FRAME.h, rx: 8 })
-  el('rect', { class: 'beam', x: FRAME.x + 3, y: BEAM_Y - 4, width: FRAME.w - 6, height: 8 })
+  svg.replaceChildren()
+  const g = G()
+  svg.setAttribute('viewBox', `0 0 ${g.VW} ${g.VH}`)
+  text(g.tray.x, g.tray.y - 16, 'Feed tray', '', 'start')
+  S.trayStat = text(g.tray.x + g.tray.w, g.tray.y - 16, '', 'sm', 'end')
+  S.tiles = el('g', {}); S.carry = el('g', {})
   S.rods = {}
-  GROUPS.forEach(([label, key], gi) => {
-    const gx = FRAME.x + 40 + gi * 270
-    const cx = gx + 15 + (DIGITS - 1) * 34 / 2
-    text(cx, FRAME.y - 14, label, '', 'middle')
-    S.rods[key] = []
-    for (let d = 0; d < DIGITS; d++) {
-      const x = gx + 15 + d * 34
-      el('line', { class: 'rodl', x1: x, y1: FRAME.y + 12, x2: x, y2: FRAME.y + FRAME.h - 12 })
-      const heaven = el('ellipse', { class: 'heaven', cx: x, cy: FRAME.y + 34, rx: 13, ry: 9 })
-      const earth = []
-      for (let b = 0; b < 4; b++) earth.push(el('ellipse', { class: 'earth', cx: x, cy: FRAME.y + FRAME.h - 28 - b * 22, rx: 13, ry: 9 }))
-      S.rods[key].push({ x, heaven, earth })
-    }
-    S['num_' + key] = text(cx, FRAME.y + FRAME.h + 42, '0', 'disp')
-    text(cx, FRAME.y + FRAME.h + 62, `wc -${key}`, 'sm')
-  })
-  el('rect', { class: 'refstrip', x: FRAME.x, y: 448, width: FRAME.w, height: 26, rx: 4 })
-  text(FRAME.x + 12, 466, 'Whole-string reference', 'sm', 'start')
-  S.refText = text(FRAME.x + 200, 466, '', 'mono', 'start')
-  S.verdict = text(FRAME.x + FRAME.w - 14, 466, 'waiting', 'mono', 'end')
-  const px = 760, py = 96
-  text(px - 12, py + 5, 'Chunk size, bytes', 'sm', 'end')
-  el('line', { class: 'rodl', x1: px, y1: py, x2: px + 300, y2: py })
-  S.picks = SIZES.map((v, i) => {
-    const g = el('g', { class: 'pick' + (v === chunkSize ? ' on' : ''), tabindex: 0, role: 'radio', 'aria-label': `${v} bytes per chunk`, 'aria-checked': String(v === chunkSize) })
-    el('circle', { cx: px + 30 + i * 60, cy: py, r: 11 }, g)
-    text(px + 30 + i * 60, py + 26, String(v), 'sm', 'middle', g)
-    g.addEventListener('click', () => choose(v))
-    g.addEventListener('keydown', (e) => {
-      const i0 = SIZES.indexOf(chunkSize)
-      if (e.key === 'ArrowRight' || e.key === 'ArrowUp') choose(SIZES[Math.min(4, i0 + 1)])
-      else if (e.key === 'ArrowLeft' || e.key === 'ArrowDown') choose(SIZES[Math.max(0, i0 - 1)])
-      else if (e.key === 'Enter' || e.key === ' ') choose(v)
-      else return
-      e.preventDefault()
+  g.frames.forEach((f) => {
+    el('rect', { class: 'wood', x: f.x, y: f.y, width: f.w, height: f.h, rx: 8 })
+    el('rect', { class: 'beam', x: f.x + 3, y: f.beam - 4, width: f.w - 6, height: 8 })
+    f.groups.forEach((gi) => {
+      const [label, key] = GROUPS[gi]
+      const pitch = Math.min(g.rod, (f.w - 40) / DIGITS), rx = Math.min(14, pitch / 2 - 2), ry = Math.min(9.5, rx * 0.72)
+      const gx = f.x + f.w / 2 - (DIGITS - 1) * pitch / 2 - 15
+      const cx = f.x + f.w / 2
+      text(cx, f.y - 14, label, '', 'middle')
+      S.rods[key] = []
+      for (let d = 0; d < DIGITS; d++) {
+        const x = gx + 15 + d * pitch
+        el('line', { class: 'rodl', x1: x, y1: f.y + 12, x2: x, y2: f.y + f.h - 12 })
+        const heaven = el('ellipse', { class: 'heaven', cx: x, cy: f.y + 34, rx, ry })
+        const earth = []
+        for (let b = 0; b < 4; b++) earth.push(el('ellipse', { class: 'earth', cx: x, cy: f.y + f.h - 28 - b * 22, rx, ry }))
+        const down = (f.beam - 4 - ry - 1) - (f.y + 34), up = (f.y + f.h - 28 - 66) - (f.beam + 4 + ry + 1)
+        S.rods[key].push({ x, heaven, earth, up, down })
+      }
+      S['num_' + key] = text(cx, f.y + f.h + 40, '0', 'disp')
+      text(cx, f.y + f.h + 60, `wc -${key}`, 'sm')
     })
-    return g
+  })
+  el('rect', { class: 'refstrip', x: g.tray.x, y: g.ref.y, width: g.tray.w, height: 26, rx: 4 })
+  text(g.tray.x + 12, g.ref.y + 18, portrait ? 'Reference' : 'Whole-string reference', 'sm', 'start')
+  S.refText = text(g.tray.x + (portrait ? 90 : 200), g.ref.y + 18, '', 'mono', 'start')
+  S.verdict = text(g.tray.x + g.tray.w - 14, g.ref.y + 18, 'waiting', 'mono', 'end')
+  const px = g.pick.x, py = g.pick.y
+  if (portrait) text(g.tray.x, py - 18, 'Chunk size, bytes', 'sm', 'start'); else text(px - 12, py + 5, 'Chunk size, bytes', 'sm', 'end')
+  el('line', { class: 'rodl', x1: px, y1: py, x2: px + g.pick.gap * 5, y2: py })
+  S.picks = SIZES.map((v, i) => {
+    const gg = el('g', { class: 'pick' + (v === chunkSize ? ' on' : ''), tabindex: 0, role: 'radio', 'aria-label': `${v} bytes per chunk`, 'aria-checked': String(v === chunkSize) })
+    el('circle', { cx: px + 30 + i * g.pick.gap, cy: py, r: 11 }, gg)
+    text(px + 30 + i * g.pick.gap, py + 26, String(v), 'sm', 'middle', gg)
+    gg.addEventListener('click', () => choose(v))
+    gg.addEventListener('keydown', (e) => { const i0 = SIZES.indexOf(chunkSize); if (e.key === 'ArrowRight' || e.key === 'ArrowUp') choose(SIZES[Math.min(4, i0 + 1)]); else if (e.key === 'ArrowLeft' || e.key === 'ArrowDown') choose(SIZES[Math.max(0, i0 - 1)]); else if (e.key === 'Enter' || e.key === ' ') choose(v); else return; e.preventDefault() })
+    return gg
   })
 }
+function layout() {
+  const w = $('frame').getBoundingClientRect().width
+  const want = w < 700
+  if (want !== portrait) { portrait = want; $('frame').classList.toggle('portrait', portrait); drawSoroban(); stream() }
+}
+addEventListener('resize', layout)
 function choose(v) {
   chunkSize = v
   S.picks.forEach((p, j) => { p.classList.toggle('on', SIZES[j] === v); p.setAttribute('aria-checked', String(SIZES[j] === v)) })
   stream()
 }
 function setBeads(key, n) {
-  const digits = String(Math.min(n, 9999)).padStart(DIGITS, '0').split('').map(Number)
+  const digits = String(Math.min(n, 10 ** DIGITS - 1)).padStart(DIGITS, '0').split('').map(Number)
   S.rods[key].forEach((rod, i) => {
     const d = digits[i], five = d >= 5, ones = d % 5
-    rod.heaven.setAttribute('transform', five ? 'translate(0 30)' : 'translate(0 0)')
-    rod.earth.forEach((b, j) => b.setAttribute('transform', j < ones ? 'translate(0 -30)' : 'translate(0 0)'))
+    rod.heaven.setAttribute('transform', five ? `translate(0 ${rod.down})` : 'translate(0 0)')
+    rod.earth.forEach((b, j) => b.setAttribute('transform', j >= 4 - ones ? `translate(0 -${rod.up})` : 'translate(0 0)'))
   })
   S['num_' + key].textContent = n
 }
-function tileW(n) { return Math.min(46, (1080 - (n - 1) * 6) / Math.max(n, 1)) }
+function tileW(n) { return Math.min(46, (G().tray.w - (n - 1) * 6) / Math.max(n, 1)) }
 function renderTiles(chunks, active, done) {
   S.tiles.replaceChildren()
   const n = chunks.length, w = tileW(n), h = 30
+  const tray = G().tray
   chunks.slice(0, 60).forEach((c, i) => {
-    const x = FRAME.x + i * (w + 6)
-    el('rect', { class: 'tile' + (i === active ? ' active' : i < done ? ' done' : ''), x, y: 56, width: w, height: h, rx: 3 }, S.tiles)
-    if (w >= 30) { const tt = text(x + w / 2, 76, `${c.length}B`, 'sm', 'middle', S.tiles); if (i === active) tt.style.fill = '#f4ecdc' }
-    if (i < n - 1) el('line', { class: 'seamline', x1: x + w + 3, y1: 50, x2: x + w + 3, y2: 92 }, S.tiles)
+    const x = tray.x + i * (w + 6)
+    el('rect', { class: 'tile' + (i === active ? ' active' : i < done ? ' done' : ''), x, y: tray.y, width: w, height: h, rx: 3 }, S.tiles)
+    if (w >= 30) { const tt = text(x + w / 2, tray.y + 20, `${c.length}B`, 'sm', 'middle', S.tiles); if (i === active) tt.style.fill = '#f4ecdc' }
+    if (i < n - 1) el('line', { class: 'seamline', x1: x + w + 3, y1: tray.y - 6, x2: x + w + 3, y2: tray.y + 36 }, S.tiles)
   })
   S.trayStat.textContent = n ? `${n} chunk${n === 1 ? '' : 's'} of ${chunkSize} bytes` : ''
 }
 function showCarry(i, rest, chunks) {
   S.carry.replaceChildren()
   if (!rest.length) return
-  const w = tileW(chunks.length), x = FRAME.x + i * (w + 6) + w + 3
-  el('circle', { class: 'carrybead', cx: x, cy: 71, r: 8 }, S.carry)
+  const tray = G().tray, w = tileW(chunks.length), x = tray.x + i * (w + 6) + w + 3
+  el('circle', { class: 'carrybead', cx: x, cy: tray.y + 15, r: 8 }, S.carry)
   const hex = [...rest].map((b) => b.toString(16).padStart(2, '0')).join(' ')
-  text(x, 112, `carry ${hex}`, 'mono', 'middle', S.carry).style.fill = '#7fb3d5'
+  text(x, tray.y + 56, `carry ${hex}`, 'mono', 'middle', S.carry).style.fill = '#7fb3d5'
 }
 function log(cls, s) { const d = document.createElement('div'); d.className = cls; d.textContent = s; $('log').appendChild(d); $('log').scrollTop = $('log').scrollHeight }
 function setStatus(cls, msg) { $('status').className = 'status' + (cls ? ' ' + cls : ''); $('statusMsg').textContent = msg }
 
-let timer = null
+let timer = null, uploaded = null
 async function stream() {
   clearTimeout(timer)
+  if (uploaded) return bulkBytes(uploaded.bytes, uploaded.name)
   const textIn = $('src').value
   const bytes = enc.encode(textIn)
+  if (bytes.length > 4096) return bulkBytes(bytes, `${(bytes.length / 1024).toFixed(0)} KB of text`)
   const ref = wcReference(textIn)
   $('inStat').textContent = `${textIn.length} code units, ${bytes.length} bytes`
   S.refText.textContent = `${ref.l} ${ref.w} ${ref.c} ${ref.m}`
@@ -378,15 +382,17 @@ async function stream() {
   }
   stepFn()
 }
-const BULK_CHUNK = 32 * 1024, MAX_UPLOAD = 64 * 1024 * 1024
-async function bulk(file) {
+const BULK_CHUNK = 32 * 1024, MAX_UPLOAD = 64 * 1024 * 1024, SHOW_CAP = 2 * 1024 * 1024
+async function bulkBytes(bytes, name) {
   clearTimeout(timer)
   const t0 = performance.now()
-  const bytes = new Uint8Array(await file.arrayBuffer())
-  $('inStat').textContent = `${file.name}, ${(bytes.length / 1048576).toFixed(2)} MB`
+  $('inStat').textContent = bytes.length >= 1048576 ? `${name}, ${(bytes.length / 1048576).toFixed(2)} MB` : `${name}, ${bytes.length} bytes`
   const nChunks = Math.ceil(bytes.length / BULK_CHUNK)
-  $('chunkStat').textContent = `${nChunks} chunks of 32 KB, the real size`
-  $('log').replaceChildren(); S.verdict.textContent = 'counting'
+  $('chunkStat').textContent = `${nChunks} chunk${nChunks === 1 ? '' : 's'} of 32 KB, the real size`
+  $('log').replaceChildren(); S.verdict.textContent = 'counting'; S.verdict.classList.remove('amber')
+  S.refText.textContent = ''
+  renderTiles([], -1, 0); S.carry.replaceChildren(); S.trayStat.textContent = `${nChunks} chunks of 32 KB, too many to lay out`
+  setStatus('', `Counting ${name} at the real 32 KB chunk size.`)
   const dec = new TextDecoder('utf-8')
   let l = 0, w = 0, m = 0, inWord = false, carries = 0, carryProbe = new Uint8Array(0)
   for (let c = 0; c < nChunks; c++) {
@@ -395,7 +401,7 @@ async function bulk(file) {
     const [, rest] = splitIncompleteTail(joined); if (rest.length) carries++; carryProbe = rest
     for (const ch of dec.decode(chunk, { stream: true })) { const cp = ch.codePointAt(0); if (cp === 10) l++; const sp = cp < 128 ? asciiSpace.has(cp) : isSpaceCp(cp); if (sp) inWord = false; else { if (!inWord) w++; inWord = true } m++ }
     if (c % 64 === 0 || c === nChunks - 1) {
-      log('', `chunk ${c + 1}/${nChunks}, ${carries} boundary ${carries === 1 ? 'carry' : 'carries'} so far`)
+      log(rest.length ? 'carry' : '', `chunk ${c + 1}/${nChunks}, ${carries} boundary ${carries === 1 ? 'carry' : 'carries'} so far`)
       setBeads('l', l); setBeads('w', w); setBeads('c', c * BULK_CHUNK + chunk.length); setBeads('m', m)
       await new Promise((r) => requestAnimationFrame(r))
     }
@@ -403,14 +409,25 @@ async function bulk(file) {
   dec.decode()
   const ms = performance.now() - t0, rate = (bytes.length / 1048576) / (ms / 1000)
   setBeads('l', l); setBeads('w', w); setBeads('c', bytes.length); setBeads('m', m)
-  S.refText.textContent = 'not run on files this large'
-  S.verdict.textContent = `${rate.toFixed(0)} MB/s in this tab`
-  setStatus('', `${file.name} counted at real 32 KB chunks in ${ms.toFixed(0)} ms, ${carries} chunk-boundary ${carries === 1 ? 'carry' : 'carries'}.`)
+  let tail = ''
+  {
+    const ref = wcReference(new TextDecoder().decode(bytes))
+    const agree = l === ref.l && w === ref.w && bytes.length === ref.c && m === ref.m
+    S.refText.textContent = `${ref.l} ${ref.w} ${ref.c} ${ref.m}`
+    S.verdict.textContent = agree ? `agrees, ${rate.toFixed(0)} MB/s` : 'mismatch'; S.verdict.classList.toggle('amber', agree)
+    tail = agree ? ' Agrees with the whole-string reference.' : ' Mismatch against the reference: that would be a bug.'
+    log('end', `EOF  ${l} ${w} ${bytes.length} ${m}  ${agree ? 'agrees with the reference' : 'MISMATCH'}`)
+  }
+  setStatus('', `${name} counted at real 32 KB chunks in ${ms.toFixed(0)} ms, ${carries} chunk-boundary ${carries === 1 ? 'carry' : 'carries'}.${tail}`)
 }
-function loadFile(file) {
+async function loadFile(file) {
   if (!file) return
   if (file.size > MAX_UPLOAD) { setStatus('bad', `${file.name} is over the 64 MB cap.`); return }
-  if (file.size <= 4096) file.text().then((t) => { $('src').value = t; stream() }); else bulk(file)
+  const bytes = new Uint8Array(await file.arrayBuffer())
+  if (bytes.length <= SHOW_CAP) { uploaded = null; $('src').value = new TextDecoder().decode(bytes) }
+  else { uploaded = { bytes, name: file.name }; $('src').value = new TextDecoder().decode(bytes.subarray(0, 64 * 1024)) + `\n\n[the first 64 KB of ${file.name} is shown; all ${(bytes.length / 1048576).toFixed(1)} MB are counted]` }
+  $('src').scrollTop = 0
+  stream()
 }
 for (const name of Object.keys(PRESETS)) { const b = document.createElement('button'); b.type = 'button'; b.textContent = name; b.onclick = () => { $('src').value = PRESETS[name]; stream() }; $('presets').appendChild(b) }
 const go = document.createElement('button'); go.type = 'button'; go.className = 'go'; go.textContent = 'Stream it'; go.onclick = stream
@@ -420,8 +437,10 @@ const fileIn = document.createElement('input'); fileIn.type = 'file'; fileIn.hid
 up.onclick = () => fileIn.click(); fileIn.addEventListener('change', () => loadFile(fileIn.files[0]))
 for (const ev of ['dragover', 'drop']) document.addEventListener(ev, (e) => e.preventDefault())
 document.addEventListener('drop', (e) => loadFile(e.dataTransfer?.files?.[0]))
-$('src').addEventListener('input', () => { clearTimeout(timer); timer = setTimeout(stream, 500) })
+$('src').addEventListener('input', () => { uploaded = null; clearTimeout(timer); timer = setTimeout(stream, 500) })
 
+portrait = $('frame').getBoundingClientRect().width < 700
+$('frame').classList.toggle('portrait', portrait)
 drawSoroban()
 $('src').value = PRESETS['boundary trap']
 stream()

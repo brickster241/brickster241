@@ -21,31 +21,33 @@
   }
   * { box-sizing: border-box; margin: 0; }
   html { color-scheme: dark; background: var(--navy); }
-  body { background: var(--navy); color: var(--ink); font-family: var(--sans); font-size: 16px; line-height: 1.55; -webkit-font-smoothing: antialiased; }
+  body { background: var(--navy); color: var(--ink); font-family: var(--sans); font-size: 16px; line-height: 1.55; -webkit-font-smoothing: antialiased; overflow-x: hidden; }
   ::selection { background: var(--yellow); color: var(--navy); }
   :focus-visible { outline: 2px solid var(--yellow); outline-offset: 3px; }
   a { color: var(--yellow); text-decoration: none; border-bottom: 1px solid rgba(242,201,76,.35); }
   a:hover { border-color: var(--yellow); }
   * { scrollbar-color: var(--rule) var(--navy2); scrollbar-width: thin; }
 
-  header { display: grid; grid-template-columns: 1fr auto; gap: 24px; align-items: end; padding: 26px clamp(18px, 4vw, 48px) 18px; border-bottom: 2px solid var(--rule); }
+  header { padding: 26px clamp(18px, 4vw, 48px) 18px; border-bottom: 2px solid var(--rule); }
   h1 { font-family: var(--black); font-size: clamp(28px, 3.4vw, 38px); line-height: 1; letter-spacing: .01em; }
   h1 span { color: var(--kraft); }
   .sub { color: var(--dim); margin-top: 8px; font-size: 15.5px; max-width: 72ch; }
-  .stampbox { min-width: 320px; max-width: 480px; border: 2px dashed var(--kraft2); border-radius: 6px; padding: 10px 14px; display: flex; gap: 12px; align-items: center; font-size: 14.5px; color: var(--lamp); }
+  .stampbox { margin-top: 14px; max-width: 720px; border: 2px dashed var(--kraft2); border-radius: 6px; padding: 10px 14px; display: flex; gap: 12px; align-items: center; font-size: 14.5px; color: var(--lamp); }
   .stampbox .pm { width: 14px; height: 14px; border-radius: 50%; border: 2px solid var(--lamp); flex: none; }
   .stampbox.boot .pm { border-style: dotted; }
   .stampbox.bad { border-color: var(--red); color: var(--red); }
   .stampbox.bad .pm { background: var(--red); border-color: var(--red); }
 
-  .office { padding: 8px clamp(10px, 2vw, 24px) 0; overflow-x: auto; }
-  .frame { position: relative; width: 100%; min-width: 960px; aspect-ratio: 1200 / 400; max-height: 62dvh; margin: 0 auto; }
+  .office { padding: 8px clamp(10px, 2vw, 24px) 0; }
+  .frame { position: relative; width: 100%; aspect-ratio: 1200 / 400; max-height: 62dvh; margin: 0 auto; }
+  .frame.portrait { aspect-ratio: 420 / 720; max-height: none; }
   .frame svg { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
   svg text { font-family: var(--sans); font-size: 12.5px; font-weight: 600; fill: var(--ink); }
   svg text.sm { font-size: 11.5px; font-weight: 400; fill: var(--dim); }
   svg text.type { font-family: var(--type); font-weight: 400; fill: var(--navy); font-size: 12px; }
   svg text.count { font-family: var(--black); font-size: 16px; fill: var(--ink); }
-  svg text.stampt { font-family: var(--black); font-size: 12px; letter-spacing: .04em; }
+  svg text.stampt { font-family: var(--type); font-size: 13px; }
+  svg text.sealt { font-family: var(--type); font-size: 13px; fill: var(--navy); }
   .sack { fill: var(--kraft2); stroke: var(--kraft); stroke-width: 2; }
   .hole { fill: var(--navy2); stroke: var(--rule); stroke-width: 1.5; transition: fill .25s; }
   .hole.lit { stroke-width: 2; }
@@ -56,11 +58,17 @@
   .env { fill: var(--kraft); stroke: var(--kraft2); stroke-width: 1; }
   .env path { fill: none; stroke: var(--navy); stroke-width: 1; }
   .desk { fill: var(--navy2); stroke: var(--kraft2); stroke-width: 2; }
-  .stamp { fill: none; stroke-width: 3; }
+  .stampg { opacity: .92; }
+  .stamp { fill: none; stroke-width: 2.5; }
+  .stamp.inner { stroke-width: 1; opacity: .75; }
   .stamp.ok { stroke: var(--green); } .stamp.no { stroke: var(--red); }
   text.ok { fill: var(--green); } text.no { fill: var(--red); }
-  .seal { fill: none; stroke: var(--yellow); stroke-width: 3; }
-  .seal.bad { stroke: var(--red); }
+  .sealg { transition: opacity .3s; }
+  .seal { fill: var(--yellow); stroke: #a67c00; stroke-width: 2; }
+  .seal.ring { fill: none; stroke: rgba(15, 26, 46, .55); stroke-width: 1.5; stroke-dasharray: 3 3; }
+  .sealg.bad .seal { fill: var(--red); stroke: #8e1626; }
+  .sealg.bad .seal.ring { stroke: rgba(255, 255, 255, .5); }
+  .sealg.bad text.sealt { fill: #fff; }
   .lampglow { fill: var(--lamp); opacity: .05; }
   @media (prefers-reduced-motion: reduce) { .running .belt2 { animation: none; } }
 
@@ -77,16 +85,19 @@
   textarea:focus { outline: none; }
   #status { font-size: 12.5px; color: var(--dim); padding: 6px 14px; border-top: 1px solid var(--navy3); min-height: 26px; }
   #tokens { flex: 1; min-height: 0; overflow: auto; padding: 8px 12px; display: flex; flex-wrap: wrap; gap: 5px; align-content: flex-start; background: var(--navy2); }
-  .tok { border-radius: 3px; padding: 2px 8px; font: 500 12px var(--sans); color: var(--navy); white-space: nowrap; }
-  .tok small { font-size: 9.5px; font-weight: 700; letter-spacing: .04em; margin-right: 6px; opacity: .75; }
+  .tok { border-radius: 3px; padding: 2px 8px; font: 500 12.5px var(--sans); color: var(--navy); white-space: nowrap; display: inline-flex; gap: 6px; align-items: baseline; }
+  .tok b { font-family: var(--type); font-weight: 400; }
+  .tok small { font-size: 11px; font-weight: 600; opacity: .8; }
   #readings { flex: 1; min-height: 0; overflow: auto; padding: 10px 14px; font-size: 13.5px; color: var(--dim); background: var(--navy2); display: grid; align-content: start; gap: 8px; }
   #readings .row { display: grid; grid-template-columns: 1fr auto; gap: 8px; align-items: baseline; border-bottom: 1px solid var(--navy3); padding-bottom: 6px; }
   #readings .row b { font-family: var(--black); color: var(--green); font-weight: 400; font-size: 13px; }
   #readings .row b.no { color: var(--red); }
   #readings .msg { font-family: var(--type); font-size: 12.5px; color: var(--lamp); white-space: pre-wrap; word-break: break-word; }
 
-  main { max-width: 1120px; margin: 0 auto; padding: 44px clamp(18px, 4vw, 48px) 80px; display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 48px; }
-  section { margin-bottom: 44px; }
+  main { max-width: 980px; margin: 0 auto; padding: 44px clamp(18px, 4vw, 48px) 72px; }
+  section { margin-bottom: 36px; padding-left: 72px; position: relative; }
+  section::before { content: ''; position: absolute; left: 0; top: -2px; width: 40px; height: 40px; border-radius: 50%; border: 2px dashed var(--red); transform: rotate(-12deg); }
+  section::after { content: ''; position: absolute; left: 44px; top: 12px; width: 18px; height: 8px; border-top: 2px solid var(--red); border-bottom: 2px solid var(--red); opacity: .8; }
   h2 { font-family: var(--black); font-size: 22px; margin-bottom: 12px; }
   p { color: var(--dim); max-width: 68ch; margin-bottom: 12px; }
   p b, li b { color: var(--ink); font-weight: 600; }
@@ -94,33 +105,31 @@
   li { margin-bottom: 10px; }
   li::marker { color: var(--yellow); font-weight: 800; }
   code { font-family: var(--type); font-size: .95em; color: var(--lamp); background: var(--navy2); padding: 1px 6px; border-radius: 3px; }
-  table { border-collapse: collapse; width: 100%; max-width: 640px; font-size: 15px; margin: 8px 0 16px; }
-  td { text-align: left; padding: 9px 12px; border-bottom: 1px solid var(--rule); }
-  td.n { font-family: var(--black); color: var(--yellow); font-size: 14px; white-space: nowrap; }
-  aside .card { position: sticky; top: 24px; border: 2px dashed var(--kraft2); border-radius: 6px; padding: 14px 16px; }
-  aside .card h3 { font-family: var(--black); font-size: 16px; margin-bottom: 10px; }
-  aside .card ul { list-style: none; padding: 0; }
-  aside .card li { display: flex; gap: 10px; align-items: center; font-size: 14.5px; margin-bottom: 8px; color: var(--dim); }
-  aside .card li .sw { width: 18px; height: 12px; border-radius: 3px; flex: none; }
-  footer { border-top: 2px solid var(--rule); padding: 18px clamp(18px, 4vw, 48px); color: var(--faint); font-size: 13.5px; display: flex; flex-wrap: wrap; gap: 8px 24px; }
+  .manifest { max-width: 720px; margin: 8px 0 16px; }
+  .manifest .row { display: grid; grid-template-columns: 1fr auto; gap: 14px; align-items: center; padding: 10px 0; border-bottom: 1px dotted var(--rule); }
+  .manifest .row .what { color: var(--ink); }
+  .manifest .row .what small { display: block; color: var(--dim); font-size: 13.5px; }
+  .manifest .row .stamp { font-family: var(--black); font-size: 13px; color: var(--green); border: 2px solid var(--green); padding: 4px 10px; border-radius: 3px; transform: rotate(-3deg); white-space: nowrap; }
+  .sheet { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; max-width: 760px; margin-top: 8px; }
+  .sheet div { border: 2px dashed var(--kraft2); padding: 10px 10px 8px; border-radius: 2px; color: var(--dim); font-size: 13.5px; display: flex; flex-direction: column; gap: 8px; }
+  .sheet div i { display: block; height: 22px; border-radius: 2px; }
+  footer { border-top: 2px solid var(--rule); padding: 18px clamp(18px, 4vw, 48px); color: var(--faint); font-size: 13.5px; display: flex; flex-wrap: wrap; gap: 10px 24px; align-items: center; }
+  footer .pm { width: 40px; height: 40px; border-radius: 50%; border: 2px solid var(--red); color: var(--red); font-family: var(--black); font-size: 9px; display: grid; place-items: center; transform: rotate(8deg); flex: none; }
   @media (max-width: 900px) {
-    header { grid-template-columns: 1fr; align-items: start; }
-    .stampbox { min-width: 0; max-width: none; }
     .deck { grid-template-columns: 1fr; }
     .deck > div { border-right: 0; border-bottom: 2px solid var(--rule); height: auto; min-height: 200px; max-height: 320px; }
-    .sacks { grid-template-columns: repeat(4, 1fr); }
-    main { grid-template-columns: 1fr; gap: 24px; }
-    aside .card { position: static; }
+    .sacks { grid-template-columns: 1fr 1fr; }
+    section { padding-left: 60px; }
+    section::before { width: 34px; height: 34px; }
+    section::after { left: 38px; top: 10px; width: 14px; }
   }
 </style>
 </head>
 <body>
 
 <header>
-  <div>
-    <h1>JSON-LP <span>night mail</span></h1>
-    <div class="sub">A JSON lexer and recursive-descent parser written from scratch in Python, running here unmodified in CPython. Every character is a letter: the lexer sorts it into a pigeonhole by token type, the parser reads the address, and two inspectors stamp the verdict.</div>
-  </div>
+  <h1>JSON-LP <span>night mail</span></h1>
+  <div class="sub">A JSON lexer and recursive-descent parser written from scratch in Python, running here unmodified in CPython. Every character is a letter: the lexer sorts it into a pigeonhole by token type, the parser reads the address, and two inspectors stamp the verdict.</div>
   <div class="stampbox boot" id="stampbox" role="status" aria-live="polite"><span class="pm"></span><span id="stampMsg">Opening the office: loading CPython and fetching lexer.py and parser.py from the repository.</span></div>
 </header>
 
@@ -158,18 +167,25 @@
 </div>
 
 <main>
-  <div>
+  <div class="ledger">
     <section>
       <h2>What you are looking at</h2>
       <p><b>JSON-LP</b> is a JSON lexer and parser written from scratch in pure Python: a character-level lexer, a recursive-descent parser, a typed error taxonomy with positions, and a command-line tool with pipeline exit codes. The office above is not a re-implementation of it in JavaScript. It fetches <code>lexer.py</code> and <code>parser.py</code> from the repository, unmodified, and runs them in CPython inside your browser through Pyodide. What you see is the real code working.</p>
       <p>Every run is also a differential test. The same text goes to Python's own <code>json.loads</code>, held to the RFC-strict rule that a document must be an object or an array, and the two verdicts are compared. They have agreed on every case ever fed to them, which is the claim this page lets you attack.</p>
+      <div class="sheet">
+        <div><i style="background:var(--red)"></i>braces and brackets: structure</div>
+        <div><i style="background:var(--blue)"></i>strings, numbers filed as strings, quotes and escapes</div>
+        <div><i style="background:var(--green)"></i>true, false, null</div>
+        <div><i style="background:var(--yellow)"></i>colons and commas</div>
+        <div><i style="background:var(--kraft)"></i>whitespace, when shown</div>
+      </div>
     </section>
 
     <section>
       <h2>How the office sorts</h2>
       <ol>
         <li><b>The sack</b> is your text. It is opened one character at a time.</li>
-        <li><b>The sorting frame</b> is the lexer. Each character, or run of characters, is a letter dropped into a pigeonhole by its token type: braces and brackets, quotes, strings, colons and commas, the literals <code>true</code>, <code>false</code> and <code>null</code>, numbers, whitespace. A letter that fits no hole is a lexer error, and the office stops there.</li>
+        <li><b>The sorting frame</b> is the lexer. Each character, or run of characters, is a letter dropped into a pigeonhole by its token type: braces and brackets, quotes, strings, escapes, colons and commas, the literals <code>true</code>, <code>false</code> and <code>null</code>, whitespace. The lexer has no number type: a number is filed as a string, and the pigeonhole says so. A letter that fits no hole is a lexer error, and the office stops there.</li>
         <li><b>The belt</b> carries the sorted letters, in order, to the reader.</li>
         <li><b>The reader</b> is the parser. It is recursive descent: one function per grammar rule, each expecting particular letters next and complaining, with a position, when the wrong one arrives. A trailing comma is exactly that complaint.</li>
         <li><b>The inspectors</b> are the comparator. One stamps the repository parser's verdict, one stamps <code>json.loads</code>. When both stamps match, the seal is applied. When they differ, the letter is returned to sender, in red, because a disagreement is a bug in one of the two.</li>
@@ -179,45 +195,29 @@
     <section>
       <h2>Try this</h2>
       <ul>
-        <li>Open the <b>trailing comma</b> sack. Both inspectors reject it, for their own reasons, and the seal still goes on: agreement includes agreeing to refuse.</li>
-        <li>Open <b>not json</b>. The reader refuses a bare word at the top level, and so does the RFC-strict reference. Delete the strictness in your head and you would have a disagreement; that is why the reference is pinned.</li>
+        <li>Open the <b>trailing comma</b> sack. Both inspectors refuse it, for their own reasons, and the seal still goes on: agreement includes agreeing to refuse.</li>
+        <li>Open <b>not json</b>. The reader refuses a bare word at the top level, and so does the RFC-strict reference. Drop the strictness and you would have a disagreement; that is why the reference is pinned.</li>
         <li>Type into the letter yourself. Every keystroke re-sorts the whole sack a third of a second later, with timings for the lexer and the parser separately.</li>
         <li>Drop a real <code>.json</code> file on the page, up to 2 MB. If you ever get the red stamp, please open an issue with the file.</li>
       </ul>
     </section>
 
     <section>
-      <h2>Measured, not simulated</h2>
-      <table>
-        <tbody>
-          <tr><td>Lexer throughput</td><td class="n">572K tokens/s</td><td>5,136,643 tokens over a 12 MB corpus, on the repository's harness</td></tr>
-          <tr><td>Differential conformance</td><td class="n">98 cases, 0 disagreements</td><td>against RFC-strict stdlib json</td></tr>
-          <tr><td>Documented deviations</td><td class="n">8, across 3 policies</td><td>duplicate keys, top-level document, depth cap</td></tr>
-          <tr><td>Error taxonomy</td><td class="n">8 classes</td><td>typed, with positions</td></tr>
-        </tbody>
-      </table>
-      <p>The corpus benchmark is <code>bench.py</code> in the repository and the conformance run is <code>conformance.py</code>; both print their numbers, and the README says which machine produced the ones above. The known weak spot is published with them: a single multi-megabyte string token scans quadratically, and the fix, chunked scanning, is named but not yet done.</p>
+      <h2>The manifest: measured, not simulated</h2>
+      <div class="manifest">
+        <div class="row"><div class="what">Lexer throughput<small>5,136,643 tokens over a 12 MB corpus, on the repository's harness</small></div><span class="stamp">572K tokens/s</span></div>
+        <div class="row"><div class="what">Differential conformance<small>against RFC-strict stdlib json</small></div><span class="stamp">98 cases, 0 disagreements</span></div>
+        <div class="row"><div class="what">Documented deviations<small>duplicate keys, top-level document, depth cap</small></div><span class="stamp">8, across 3 policies</span></div>
+        <div class="row"><div class="what">Error taxonomy<small>typed, with positions</small></div><span class="stamp">8 classes</span></div>
+      </div>
+      <p>The corpus benchmark is <code>bench.py</code> in <a href="https://github.com/brickster241/JSON-Lexer-Parser-From-Scratch" target="_blank" rel="noreferrer">the repository</a> and the conformance run is <code>conformance.py</code>; both print their numbers, and the README says which machine produced the ones above. The known weak spot is published with them: a single multi-megabyte string token scans quadratically, and the fix, chunked scanning, is named but not yet done.</p>
     </section>
   </div>
-  <aside>
-    <div class="card">
-      <h3>The pigeonholes</h3>
-      <ul>
-        <li><span class="sw" style="background:var(--red)"></span><span>Braces and brackets: structure</span></li>
-        <li><span class="sw" style="background:var(--blue)"></span><span>Strings and their quotes</span></li>
-        <li><span class="sw" style="background:var(--green)"></span><span>true, false, null</span></li>
-        <li><span class="sw" style="background:var(--yellow)"></span><span>Colons and commas</span></li>
-        <li><span class="sw" style="background:var(--violet)"></span><span>Numbers</span></li>
-        <li><span class="sw" style="background:var(--kraft)"></span><span>Whitespace, when shown</span></li>
-        <li><span>Source: <a href="https://github.com/brickster241/JSON-Lexer-Parser-From-Scratch" target="_blank" rel="noreferrer">the repository</a></span></li>
-      </ul>
-    </div>
-  </aside>
 </main>
 
 <footer>
-  <span>JSON-LP by Ashish Verma.</span>
-  <span>The code above is fetched from the repository, unmodified, and every run is a differential test.</span>
+  <span class="pm" aria-hidden="true">JSON-LP</span>
+  <span>Posted by Ashish Verma. The code above is fetched from the repository, unmodified, and every run is a differential test.</span>
 </footer>
 
 <script type="module">
@@ -232,12 +232,12 @@ const PRESETS = {
 }
 const $ = (id) => document.getElementById(id)
 const NS = 'http://www.w3.org/2000/svg'
-let pyodide, showWS = false, timer = null
-const COLOR = { structure: '#d7263d', string: '#2b6ce6', literal: '#3aa655', punct: '#f2c94c', number: '#9b6cf2', ws: '#c8a87a' }
+let pyodide, showWS = false, timer = null, lastOut = null
+const COLOR = { structure: '#d7263d', string: '#2b6ce6', literal: '#3aa655', punct: '#f2c94c', ws: '#c8a87a' }
 const HOLES = [
   ['LEFT_BRACE', '{', 'structure'], ['RIGHT_BRACE', '}', 'structure'], ['LEFT_BRACKET', '[', 'structure'], ['RIGHT_BRACKET', ']', 'structure'],
-  ['DQUOTES', '"', 'string'], ['JSTRING', 'string', 'string'], ['COLON', ':', 'punct'], ['COMMA', ',', 'punct'],
-  ['TRUE', 'true', 'literal'], ['FALSE', 'false', 'literal'], ['NULL', 'null', 'literal'], ['NUMBER', 'number', 'number'],
+  ['DQUOTES', '"', 'string'], ['JSTRING', 'string or number', 'string'], ['COLON', ':', 'punct'], ['COMMA', ',', 'punct'],
+  ['TRUE', 'true', 'literal'], ['FALSE', 'false', 'literal'], ['NULL', 'null', 'literal'], ['ESCAPE_CHAR', '\\\\', 'string'],
 ]
 const kindOf = (t) => (HOLES.find((h) => h[0] === t)?.[2]) ?? (/NUM|INT|FLOAT|DIGIT/.test(t) ? 'number' : /WS|NEWLINE|TAB/.test(t) ? 'ws' : 'structure')
 
@@ -245,50 +245,79 @@ const svg = $('office')
 function el(name, attrs = {}, parent = svg) { const n = document.createElementNS(NS, name); for (const [k, v] of Object.entries(attrs)) n.setAttribute(k, v); parent.appendChild(n); return n }
 function text(x, y, s, cls = '', anchor = 'middle', parent = svg) { const t = el('text', { x, y, 'text-anchor': anchor, class: cls }, parent); t.textContent = s; return t }
 const L = {}
+let portrait = false
+const G = () => portrait
+  ? { VW: 420, VH: 720, sack: { cx: 90, cy: 150, s: 0.72, label: 40 }, frame: { x: 172, y: 60, w: 54, h: 46, gx: 60, gy: 54, label: 40 }, belt: { x1: 40, x2: 190, y: 330 }, reader: { x: 200, y: 280, w: 130, h: 100 }, insp: { x: 30, y: 420, w: 360, h: 220 }, lamps: [[140, 170], [220, 520]] }
+  : { VW: 1200, VH: 400, sack: { cx: 130, cy: 200, s: 1, label: 66 }, frame: { x: 300, y: 100, w: 72, h: 58, gx: 80, gy: 68, label: 66 }, belt: { x1: 624, x2: 800, y: 210 }, reader: { x: 806, y: 150, w: 150, h: 120 }, insp: { x: 990, y: 110, w: 190, h: 200 }, lamps: [[300, 180], [640, 180], [1010, 180]] }
 function drawOffice() {
-  // lamplight pools
-  for (const x of [300, 640, 1010]) el('ellipse', { class: 'lampglow', cx: x, cy: 180, rx: 220, ry: 140 })
-  // the sack
-  el('path', { class: 'sack', d: 'M70 120 C 40 160, 40 260, 70 300 C 100 330, 160 330, 190 300 C 220 260, 220 160, 190 120 L 175 100 L 85 100 Z' })
-  el('path', { class: 'sack', d: 'M85 100 Q 130 80, 175 100', fill: 'none' })
-  text(130, 66, 'The sack', ''); L.chars = text(130, 200, '0', 'count'); text(130, 220, 'characters', 'sm')
-  // sorting frame: 12 pigeonholes, 4 x 3
-  text(455, 66, 'Sorting frame', ''); text(455, 82, 'the lexer, one pigeonhole per token type', 'sm')
+  svg.replaceChildren()
+  const g = G()
+  svg.setAttribute('viewBox', `0 0 ${g.VW} ${g.VH}`)
+  for (const [x, y] of g.lamps) el('ellipse', { class: 'lampglow', cx: x, cy: y, rx: portrait ? 150 : 220, ry: portrait ? 110 : 140 })
+  // the sack: a gathered neck with a tie, a seam, and a letter edge showing
+  const sk = g.sack, s = sk.s
+  const sg = el('g', { transform: `translate(${sk.cx} ${sk.cy}) scale(${s})` })
+  el('path', { class: 'sack', d: 'M-60 -60 C -90 -30, -92 70, -60 100 C -30 128, 30 128, 60 100 C 92 70, 90 -30, 60 -60 C 40 -74, 20 -80, 0 -80 C -20 -80, -40 -74, -60 -60 Z' }, sg)
+  el('path', { d: 'M-28 -84 C -10 -96, 10 -96, 28 -84 C 30 -78, 26 -72, 20 -72 L -20 -72 C -26 -72, -30 -78, -28 -84 Z', fill: '#c8a87a', stroke: '#8f7551', 'stroke-width': 2 }, sg)
+  el('path', { d: 'M-34 -72 C -20 -66, 20 -66, 34 -72', fill: 'none', stroke: '#0f1a2e', 'stroke-width': 2.5, 'stroke-linecap': 'round' }, sg)
+  el('path', { d: 'M-40 -60 C -30 -20, -30 40, -40 96', fill: 'none', stroke: '#8f7551', 'stroke-width': 1.5, 'stroke-dasharray': '3 4' }, sg)
+  el('path', { d: 'M8 -94 l30 -14 l12 20 l-30 14 z', fill: '#f3efe6', stroke: '#8f7551', 'stroke-width': 1.5 }, sg)
+  text(sk.cx, sk.cy - 120 * s - 6, 'The sack', ''); L.chars = text(sk.cx, sk.cy + 4, '0', 'count'); text(sk.cx, sk.cy + 24, 'characters', 'sm')
+  // sorting frame: twelve pigeonholes, 4 x 3
+  const fr = g.frame
+  const fcx = fr.x + (3 * fr.gx + fr.w) / 2
+  text(fcx, fr.label, 'Sorting frame', ''); if (!portrait) text(fcx, fr.label + 16, 'the lexer, one pigeonhole per token type', 'sm')
   L.holes = {}
   HOLES.forEach(([type, glyph, kind], i) => {
-    const col = i % 4, row = Math.floor(i / 4), x = 300 + col * 80, y = 100 + row * 68
-    const g = el('g', {})
-    L.holes[type] = { rect: el('rect', { class: 'hole', x, y, width: 72, height: 58, rx: 4 }, g), count: text(x + 36, y + 40, '', 'count', 'middle', g), kind }
-    text(x + 36, y + 18, glyph, 'sm', 'middle', g)
+    const col = i % 4, row = Math.floor(i / 4), x = fr.x + col * fr.gx, y = fr.y + row * fr.gy
+    const hg = el('g', {})
+    L.holes[type] = { rect: el('rect', { class: 'hole', x, y, width: fr.w, height: fr.h, rx: 4 }, hg), count: text(x + fr.w / 2, y + fr.h - 10, '', 'count', 'middle', hg), kind }
+    text(x + fr.w / 2, y + 16, glyph, 'sm', 'middle', hg)
     L.holes[type].rect.style.stroke = COLOR[kind]
   })
-  // belt from the frame to the reader
-  el('path', { class: 'belt', d: 'M624 210 H 800' }); L.belt = el('path', { class: 'belt2', d: 'M624 210 H 800' })
-  text(712, 236, 'the belt', 'sm')
+  L.lexMs = text(fcx, fr.y + 3 * fr.gy + 14, '', 'sm')
+  // belt to the reader
+  const b = g.belt
+  el('path', { class: 'belt', d: `M${b.x1} ${b.y} H${b.x2}` }); L.belt = el('path', { class: 'belt2', d: `M${b.x1} ${b.y} H${b.x2}` })
+  text((b.x1 + b.x2) / 2, b.y + 26, 'the belt', 'sm')
   L.envs = el('g', {})
   // the reader's desk
-  el('rect', { class: 'desk', x: 806, y: 150, width: 150, height: 120, rx: 6 })
-  text(881, 66, 'The reader', ''); text(881, 82, 'the parser, recursive descent', 'sm')
-  text(881, 178, 'JSONRDParser', ''); L.parseMs = text(881, 200, '', 'sm'); L.readerVerdict = text(881, 240, '', 'stampt')
+  const rd = g.reader
+  el('rect', { class: 'desk', x: rd.x, y: rd.y, width: rd.w, height: rd.h, rx: 6 })
+  const rcx = rd.x + rd.w / 2
+  text(rcx, rd.y - (portrait ? 14 : 84), 'The reader', ''); if (!portrait) text(rcx, rd.y - 68, 'the parser, recursive descent', 'sm')
+  text(rcx, rd.y + 28, 'JSONRDParser', ''); L.parseMs = text(rcx, rd.y + 50, '', 'sm'); L.readerVerdict = text(rcx, rd.y + rd.h - 30, '', 'stampt')
   // inspectors' desk
-  el('rect', { class: 'desk', x: 990, y: 110, width: 190, height: 200, rx: 6 })
-  text(1085, 66, 'The inspectors', ''); text(1085, 82, 'the comparator', 'sm')
-  text(1006, 140, 'this repo', 'sm', 'start'); L.his = el('g', {}); L.hisT = text(1164, 140, '', 'stampt', 'end')
-  text(1006, 196, 'json.loads', 'sm', 'start'); L.std = el('g', {}); L.stdT = text(1164, 196, '', 'stampt', 'end')
-  L.seal = el('circle', { class: 'seal', cx: 1085, cy: 262, r: 32, style: 'opacity:0' })
-  L.sealT = text(1085, 267, '', 'stampt')
-  text(1085, 336, 'seal: both verdicts agree', 'sm')
-  L.lexMs = text(455, 318, '', 'sm')
+  const ip = g.insp
+  el('rect', { class: 'desk', x: ip.x, y: ip.y, width: ip.w, height: ip.h, rx: 6 })
+  const icx = ip.x + ip.w / 2
+  text(icx, ip.y - (portrait ? 14 : 44), 'The inspectors', ''); if (!portrait) text(icx, ip.y - 28, 'the comparator', 'sm')
+  text(ip.x + 16, ip.y + 30, 'this repo', 'sm', 'start'); L.his = el('g', {})
+  text(ip.x + 16, ip.y + 86, 'json.loads', 'sm', 'start'); L.std = el('g', {})
+  L.stampPos = { his: [ip.x + ip.w - 62, ip.y + 26], std: [ip.x + ip.w - 62, ip.y + 82] }
+  L.sealG = el('g', { class: 'sealg', style: 'opacity:0' })
+  el('circle', { class: 'seal', cx: icx, cy: ip.y + 152, r: 31 }, L.sealG)
+  el('circle', { class: 'seal ring', cx: icx, cy: ip.y + 152, r: 24 }, L.sealG)
+  L.sealT = text(icx, ip.y + 157, '', 'sealt', 'middle', L.sealG)
+  text(icx, ip.y + ip.h + 26, 'seal: both verdicts agree', 'sm')
 }
+function layout() {
+  const want = $('frame').getBoundingClientRect().width < 700
+  if (want !== portrait) { portrait = want; $('frame').classList.toggle('portrait', portrait); drawOffice(); if (lastOut) paint(lastOut) }
+}
+addEventListener('resize', layout)
 function stampIn(g, ok, x, y) {
   g.replaceChildren()
-  el('rect', { class: 'stamp ' + (ok ? 'ok' : 'no'), x: x - 42, y: y - 14, width: 84, height: 24, rx: 3, transform: `rotate(${ok ? -6 : 5} ${x} ${y})` }, g)
+  const cls = ok ? 'ok' : 'no'
+  const s = el('g', { class: 'stampg', transform: `rotate(${ok ? -5 : 4} ${x} ${y})` }, g)
+  el('rect', { class: 'stamp ' + cls, x: x - 46, y: y - 15, width: 92, height: 30, rx: 3 }, s)
+  el('rect', { class: 'stamp inner ' + cls, x: x - 42, y: y - 11, width: 84, height: 22, rx: 2 }, s)
+  text(x, y + 5, ok ? 'Valid' : 'Refused', 'stampt ' + cls, 'middle', s)
 }
 function setSeal(agree) {
-  L.seal.style.opacity = 1
-  L.seal.classList.toggle('bad', !agree)
-  L.sealT.textContent = agree ? 'SEALED' : 'RETURN'
-  L.sealT.setAttribute('class', 'stampt ' + (agree ? 'ok' : 'no'))
+  L.sealG.style.opacity = 1
+  L.sealG.classList.toggle('bad', !agree)
+  L.sealT.textContent = agree ? 'Sealed' : 'Returned'
 }
 
 async function boot() {
@@ -371,6 +400,11 @@ async function runOnce() {
   let out
   try { out = JSON.parse(pyodide.globals.get('run')(textIn)) } catch (e) { svg.classList.remove('running'); $('status').textContent = `python error: ${e}`; return }
   svg.classList.remove('running'); $('status').textContent = ''
+  lastOut = out
+  paint(out)
+}
+const WORD = { structure: (t) => /BRACE/.test(t) ? 'brace' : 'bracket', string: (t) => t === 'DQUOTES' ? 'quote' : t === 'ESCAPE_CHAR' ? 'escape' : 'string', literal: () => 'literal', punct: (t) => t === 'COLON' ? 'colon' : 'comma', ws: (t) => t === 'NEWLINE' ? 'newline' : t === 'TABLINE' ? 'tab' : 'space' }
+function paint(out) {
   const wsTypes = new Set(['WS', 'NEWLINE', 'TABLINE'])
   const toks = out.tokens.filter((t) => showWS || !wsTypes.has(t.t))
   // pigeonholes: count per type
@@ -378,31 +412,34 @@ async function runOnce() {
   for (const [type, h] of Object.entries(L.holes)) { const n = counts[type] ?? 0; h.count.textContent = n ? n : ''; h.rect.classList.toggle('lit', n > 0); h.rect.style.fill = n ? COLOR[h.kind] + '33' : '' }
   // envelopes on the belt: first eight letters
   L.envs.replaceChildren()
+  const bb = G().belt
   toks.slice(0, 8).forEach((t, i) => {
-    const x = 640 + i * 20, g = el('g', { class: 'env', transform: `translate(${x} 196) rotate(-8)` }, L.envs)
+    const x = bb.x1 + 16 + i * ((bb.x2 - bb.x1 - 60) / 8), g = el('g', { class: 'env', transform: `translate(${x} ${bb.y - 14}) rotate(-8)` }, L.envs)
     el('rect', { x: 0, y: 0, width: 26, height: 18, rx: 2, style: `fill:${COLOR[kindOf(t.t)]}` }, g)
     el('path', { d: 'M0 0 L13 9 L26 0' }, g)
   })
   // sorted letters log
   const frag = document.createDocumentFragment()
-  toks.slice(0, 400).forEach((t) => { const s = document.createElement('span'); s.className = 'tok'; s.style.background = COLOR[kindOf(t.t)]; const v = String(t.v ?? ''); const shown = v === '' ? t.t : v.length > 22 ? v.slice(0, 22) + '…' : v; s.innerHTML = `<small>${t.t}</small>${escapeHtml(shown)}`; frag.appendChild(s) })
+  toks.slice(0, 400).forEach((t) => { const s = document.createElement('span'); s.className = 'tok'; const kind = kindOf(t.t); s.style.background = COLOR[kind]; const v = String(t.v ?? ''); const lex = v === '' ? (kind === 'ws' ? '␣' : t.t.toLowerCase()) : v.length > 22 ? v.slice(0, 22) + '…' : v; s.innerHTML = `<b>${escapeHtml(lex)}</b><small>${WORD[kind](t.t)}</small>`; frag.appendChild(s) })
   $('tokens').replaceChildren(frag)
   if (toks.length > 400) { const m = document.createElement('span'); m.className = 'tok'; m.style.background = '#c8a87a'; m.textContent = `+${toks.length - 400} more`; $('tokens').appendChild(m) }
   $('tokStat').textContent = `${out.ntokens} letters`
   L.lexMs.textContent = `sorted in ${out.lex_ms} ms`; L.parseMs.textContent = `read in ${out.parse_ms} ms`
-  L.readerVerdict.textContent = out.his.ok ? 'DELIVERABLE' : 'REFUSED'; L.readerVerdict.setAttribute('class', 'stampt ' + (out.his.ok ? 'ok' : 'no'))
-  stampIn(L.his, out.his.ok, 1126, 136); L.hisT.textContent = out.his.ok ? 'VALID' : 'RETURN'; L.hisT.setAttribute('class', 'stampt ' + (out.his.ok ? 'ok' : 'no'))
-  stampIn(L.std, out.std.ok, 1126, 192); L.stdT.textContent = out.std.ok ? 'VALID' : 'RETURN'; L.stdT.setAttribute('class', 'stampt ' + (out.std.ok ? 'ok' : 'no'))
+  L.readerVerdict.textContent = out.his.ok ? 'Deliverable' : 'Refused'; L.readerVerdict.setAttribute('class', 'stampt ' + (out.his.ok ? 'ok' : 'no'))
+  stampIn(L.his, out.his.ok, ...L.stampPos.his)
+  stampIn(L.std, out.std.ok, ...L.stampPos.std)
   const agree = out.agree
   setSeal(agree)
   setRes('hisRes', 'hisMsg', out.his); setRes('stdRes', 'stdMsg', out.std)
-  $('vBig').textContent = agree ? 'SEALED' : 'RETURN TO SENDER'; $('vBig').classList.toggle('no', !agree)
+  $('vBig').textContent = agree ? 'Sealed' : 'Returned to sender'; $('vBig').classList.toggle('no', !agree)
   $('vSub').textContent = agree ? (out.his.ok ? 'both inspectors accept this letter' : 'both inspectors refuse this letter, each for their own reason') : 'the inspectors disagree. You found a differential case; please open an issue.'
   $('stampbox').classList.toggle('bad', !agree)
   $('stampMsg').textContent = agree ? (out.his.ok ? 'Sealed. Both the repository parser and json.loads accept the letter.' : 'Sealed. Both parsers refuse the letter, and they agree on that.') : 'Returned to sender. The repository parser and json.loads gave different verdicts.'
 }
-function setRes(ridEl, midEl, r) { $(ridEl).textContent = r.ok ? 'VALID' : 'RETURN'; $(ridEl).classList.toggle('no', !r.ok); $(midEl).textContent = r.msg }
+function setRes(ridEl, midEl, r) { $(ridEl).textContent = r.ok ? 'Valid' : 'Refused'; $(ridEl).classList.toggle('no', !r.ok); $(midEl).textContent = r.msg }
 function escapeHtml(s) { return s.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c])) }
+portrait = $('frame').getBoundingClientRect().width < 700
+$('frame').classList.toggle('portrait', portrait)
 drawOffice()
 boot().catch((e) => { $('stampbox').classList.remove('boot'); $('stampbox').classList.add('bad'); $('stampMsg').textContent = `The office could not open: ${String(e)}. Pyodide loads about 10 MB from jsdelivr on first visit; a blocked CDN lands here.` })
 </script>
